@@ -22,7 +22,7 @@
 
 1. 공식 스펙 검증: 코드 작성 전 Gemini Docs MCP(`whats-new-gemini-4-neon.md`, `long-decode.md`, `pricing.md`, `caching.md`, `interactions-overview.md`, `antigravity-agent.md`, `choosing-a-model.md`, `function-calling.md`)에서 가격, `thinking_level`, Long Decode, 암묵적 캐싱, `agent_config` 스키마를 확인했습니다.
 2. 벤치마크 하네스 및 픽스처 구현: `bench_core.py`, `bench_01`부터 `bench_07`, 동일 레벨 공정 비교 `bench_01b_apples_to_apples.py`, 마스터 실행기 `run_all.py`, 다크모드 HTML 대시보드 `build_dashboard.py`를 작성했습니다.
-3. 실측 및 4대 한계 돌파: 8개 모듈 전부를 라이브 검증(`8 / 8 PASS`, 순실측 비용 \$9.478828)했습니다. Module 1의 `refill_rate >= 0.0` 재검증, Module 4의 CWE-404 SQLite 핸들 종료 및 `-W error::ResourceWarning` 경고 0건 통과, Module 5 `xhigh`의 `background=True` 재실측, Module 6의 서버 134,742토큰(3-hop, `173801` 정답) 및 클라이언트 83,778토큰(2-hop, 700/700 NDJSON) 멀티홉 돌파, 4조건 암묵적 캐싱 매트릭스(`generateContent` 무상태 88.5%, Interactions 상태 유지 87.8%) 실측을 마쳤습니다.
+3. 실측 및 4대 한계 돌파: 8개 모듈 전부를 라이브 검증(`8 / 8 PASS`, 순실측 비용 \$10.931372)했습니다. Module 1의 `refill_rate >= 0.0` 재검증, Module 4의 CWE-404 SQLite 핸들 종료 및 `-W error::ResourceWarning` 경고 0건 통과, Module 5 `xhigh`의 `background=True` 재실측, Module 6의 서버 134,742토큰(3-hop, `173801` 정답)과 클라이언트 83,778토큰(700/700 NDJSON) 및 15,275토큰 입력 대조군 72,598토큰(605/605 NDJSON) 멀티홉 돌파, 5조건 암묵적 캐싱 매트릭스(`store=False` `steps` 배열 87.1%, Interactions 상태 유지 87.8%, `generateContent` 무상태 88.5%) 실측을 마쳤습니다.
 4. 사후 검증 및 공개 패키징: 전 파일에 `slop_engine.py`(scan), `ref_factcheck`(Tier 0-1), `py_compile`, 엄격 `unittest` 회귀 검사를 실행했고, 로컬 절대 경로와 개인 사용자명을 제거해 공개 저장소로 정리했습니다.
 
 ## 책임 및 기여 표기 원칙

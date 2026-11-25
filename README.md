@@ -9,7 +9,7 @@
 
 2026년 11월 18일 정식 출시된 `gemini-4-neon`의 Google AI Studio 공식 가이드 문서([What's new in Gemini 4 Neon](https://aistudio.google.com/docs/whats-new-gemini-4-neon))에 소개된 7개 항목을 실제 코드와 라이브 API 호출로 검증한 벤치마크 스위트입니다.
 
-Google GenAI Interactions API(`google-genai 3.3.0`), `models.generate_content()`, `v1beta` Antigravity Managed Agent, 로컬 `unittest`(`-W error::ResourceWarning` 포함) 및 AST 정적 감사로 모든 수치를 측정했습니다. 8개 모듈(7개 본편 + `01B` 동일 레벨 비교) 전부 통과(`8 / 8 PASS`)했으며, 전체 순실측 비용은 \$9.478828(`Decimal` 정밀 정산, 모듈 합계 \$9.530418에서 `01B` 교차 인용분 \$0.051590 제외)입니다.
+Google GenAI Interactions API(`google-genai 3.3.0`), `models.generate_content()`, `v1beta` Antigravity Managed Agent, 로컬 `unittest`(`-W error::ResourceWarning` 포함) 및 AST 정적 감사로 모든 수치를 측정했습니다. 8개 모듈(7개 본편 + `01B` 동일 레벨 비교) 전부 통과(`8 / 8 PASS`)했으며, 전체 순실측 비용은 \$10.931372(`Decimal` 정밀 정산, 모듈 합계 \$10.982962에서 `01B` 교차 인용분 \$0.051590 제외)입니다.
 
 ## 1. 7개 항목 실측 성적표 (8 / 8 PASS)
 
@@ -20,7 +20,7 @@ Google GenAI Interactions API(`google-genai 3.3.0`), `models.generate_content()`
 | 03 | 지식노동, 과학, 멀티모달 교차 종합 | [`bench_03_knowledge_science_1m.py`](./bench_03_knowledge_science_1m.py) | PASS (10/10) | 14,001 입력 토큰(법률 MSA+Addendum, 재무 CSV, PNG 차트, Arrhenius CSV)에서 10/10 항목 정확 추출(59.93s) | \$0.155133 |
 | 04 | 사이버보안 루트-코즈 패치 및 권한 경계 | [`bench_04_cybersecurity_reliability.py`](./bench_04_cybersecurity_reliability.py) | PASS (6 CWE + 경고 0 + 경계) | 6대 CWE(SQLi, 경로탐색, HMAC, `eval` RCE, TOCTOU, CWE-404 SQLite 핸들 미종료) 패치 후 `python -W error::ResourceWarning` 5/5 통과(경고 0건), AST 6/6, 권한 경계 통과(과소수행 0, 과잉행동 0) | \$0.238245 |
 | 05 | 4단계 Thinking Level (`low`/`medium`/`high`/`xhigh`) | [`bench_05_thinking_levels.py`](./bench_05_thinking_levels.py) | PASS (4/4 레벨 + `minimal` 400 거부) | `low`(11,733 tok / 103.86s) -> `medium`(19,745 tok / 139.58s) -> `high`(40,442 tok / 417.73s) -> `xhigh`(89,115 tok / 729.28s, `7.60x`) 4단계 모두 2/2 정답(`5247`) 및 `minimal` HTTP 400 거부 확인 | \$2.478669 |
-| 06 | 통합 1M 컨텍스트, >64K 멀티홉 Long Decode, 암묵적 캐싱 | [`bench_06_unified_1m_long_decode.py`](./bench_06_unified_1m_long_decode.py) | PASS (서버·클라이언트 >64K + 3-모드 캐시) | 라이브 서버 `background=True` 134,742토큰(3-hop, 누적 입력 360,965, 조합론 정답 `173801`), 클라이언트 `automatic_continuation=False` 83,778토큰(2-hop, 65,536 경계, 700/700 NDJSON), 4조건 암묵적 캐시(`generateContent` 무상태 88.5%, Interactions 상태 유지 87.8%) | \$5.172026 |
+| 06 | 통합 1M 컨텍스트, >64K 멀티홉 Long Decode, 암묵적 캐싱 | [`bench_06_unified_1m_long_decode.py`](./bench_06_unified_1m_long_decode.py) | PASS (3종 >64K 멀티홉 + 5-모드 캐시) | 라이브 서버 `background=True` 134,742토큰(3-hop, 누적 입력 360,965, 정답 `173801`), 클라이언트 `automatic_continuation=False` 83,778토큰(700/700 NDJSON) 및 15K 입력 대조군 72,598토큰(605/605 NDJSON), 5조건 암묵적 캐시(`store=False` `steps` 87.1%, 상태 유지 87.8%, `generateContent` 88.5%) | \$6.624570 |
 | 07 | Antigravity Managed Agent 단독 및 Hydrogen 페어링 | [`bench_07_managed_agents_multimodel.py`](./bench_07_managed_agents_multimodel.py) | PASS | `v1beta` 원격 리눅스 샌드박스(`antigravity-preview-09-2026` + `gemini-4-neon`) 실행 및 SHA-256 일치(56.60s, 암묵적 캐시 53.1%), Neon -> Hydrogen 페어링 2턴 2.58배 빠름 및 총비용 40.1% 절감 | \$0.208159 |
 
 정적 대시보드 파일은 [`results/neon_7pack_report.html`](./results/neon_7pack_report.html)에 저장되어 있습니다.
@@ -81,15 +81,16 @@ Google GenAI Interactions API(`google-genai 3.3.0`), `models.generate_content()`
 
 단계가 올라갈수록 사고 토큰이 약 1.7~2.2배씩 계단식으로 늘어났습니다(`1.00x` -> `1.68x` -> `3.45x` -> `7.60x`). 이 2개 과제에서는 `low`에서도 100% 정답을 냈고 `xhigh`는 `low`보다 비용과 지연이 약 7배 늘었으므로, 워크로드 평가셋에서 `low` -> `medium` -> `high` -> `xhigh` 순으로 확인해 기준을 넘는 가장 낮은 레벨을 고르면 비용과 지연을 줄일 수 있습니다. `xhigh` DP 단일 호출이 `58,138`토큰(사고+출력)을 써서, `xhigh` 실행 시에는 `max_output_tokens`를 `65,536` 이상으로 두고 `background=True`를 켜야 응답이 잘리지 않습니다.
 
-### Module 06: 라이브 >64K 멀티홉 Long Decode 및 4조건 암묵적 캐싱 매트릭스
+### Module 06: 라이브 >64K 멀티홉 Long Decode(3종) 및 5조건 암묵적 캐싱 매트릭스
 
 ![Module 6 Breakthrough Chart](./results/chart_m6_breakthrough.png)
 
-[`results/06_unified_1m_long_decode.json`](./results/06_unified_1m_long_decode.json)에서 통합 1,048,576 예산 검증, 3-hop 유닛테스트, 131K 기본 `background`/`automatic_continuation=False` 검증에 더해 64K 단일 홉 한계를 넘는 라이브 멀티홉 2가지 방식과 4조건 암묵적 캐싱을 실측했습니다.
+[`results/06_unified_1m_long_decode.json`](./results/06_unified_1m_long_decode.json)에서 통합 1,048,576 예산 검증, 3-hop 유닛테스트, 131K 기본 `background`/`automatic_continuation=False` 검증에 더해 64K 단일 홉 한계를 넘는 라이브 멀티홉 3종과 5조건 암묵적 캐싱을 실측했습니다.
 
 - 서버 주도 `background=True` 멀티홉(`xhigh`, `max_output_tokens=262144`): 출력 `41,928` + 사고 `92,814` = 총 `134,742`토큰(64K 단일 홉 한계의 `2.06x`), `steps=7` 중 `model_output` 3개 스텝(`11,434` + `9,015` + `99,774` = `120,223`자)을 서버가 이어 붙였습니다. 원 프롬프트는 `369`토큰이지만 멀티홉 누적 `total_input_tokens`가 `360,965`토큰(`978.2x`)으로 집계되어 공식 문서의 컴팩션 회계 경고를 실증했고, 코드 실행 없이 길이 20 제약 오토마톤 조합론 정답 `173801`을 정확히 맞혔습니다(\$3.104025).
 - 클라이언트 주도 `automatic_continuation=False` 멀티홉(`low`, `max_output_tokens=98304`): Hop 1이 정확히 `65,536`토큰(`65,183` 출력 + `353` 사고, `415.15s`)에서 `status="requires_continuation"`과 `279,352`바이트 `continuation_token`을 반환했습니다. `previous_interaction_id`와 `continuation_token`으로 이어받은 Hop 2는 정확히 `66,329`토큰(`793 + 65,536`)을 입력받아 `18,242`토큰을 추가 생성(`117.09s`)해 `completed`로 끝났으며, 홉 경계를 넘나든 결과물에서 `700 / 700` NDJSON 레코드가 파싱 오류 0건으로 이어졌습니다(총 `83,778`토큰, \$1.458036).
-- 4조건 암묵적 캐싱 매트릭스(~17.8K~22.2K 공통 프리픽스, 니들 11/11 정답): `interactions.create(store=False)` 무상태 4회와 `interactions.create(store=True)` 무상태(`previous_interaction_id` 없음) 2회는 모두 `0.0%`였고, `interactions.create(previous_interaction_id=...)` 상태 유지 2회는 `87.5%` -> `87.8%`(`15,804 / 18,069`, `16,020 / 18,245`) 연속 히트를 기록했습니다. `models.generate_content()` 무상태 호출에서는 `88.5%`(`15,804 / 17,861`, 미캐시 tail `2,057`토큰으로 공식 문서 `caching.md`의 `2,050`토큰 재처리 규칙과 일치) 히트가 발생해 3개 히트 턴에서 \$0.135739(95% 할인)를 절감했습니다.
+- 15K 입력 대조군 2-hop 멀티홉(`prompt_tokens=15,275`, `4,096` 임계값의 `3.7x`): Hop 1이 정확히 `65,536`토큰(`65,026 + 510`, `399.16s`)에서 멈춘 뒤 즉시 이어받은 Hop 2(`in=80,811`, `605 / 605` NDJSON 파싱 오류 0건, 총 `72,598`토큰, \$1.377228)에서도 `total_cached_tokens=0 (0.0%)`이 나왔습니다. 초기 입력이 `4,096`토큰을 크게 넘겨도 `gemini-4-neon`의 Long Decode 이어받기 홉에서는 현재 암묵적 캐시 할인이 적용되지 않는 서버 측 동작을 대조 실험으로 확정했습니다.
+- 5조건 암묵적 캐싱 매트릭스(~16.9K~22.2K 공통 프리픽스, 니들 14/14 정답, 총 절감액 \$0.220920): 단발 문자열·`system_instruction` 반복(`store=False` 4회, `store=True` `previous_interaction_id` 없음 2회)은 `0.0%`였으나, 공식 무상태 히스토리 규격(`[user_input, *r1.steps, user_input_2]`)을 쓴 `interactions.create(store=False)` 3턴에서는 Turn 2 **`86.9%`**(`14,852 / 17,085`) -> Turn 3 **`87.1%`**(`15,036 / 17,260`) 연속 히트가 발생해 지출(\$0.075316)보다 절감액(\$0.085181)이 더 컸습니다. 상태 유지 `interactions.create(previous_interaction_id=...)`는 `87.5%` -> `87.8%`, `models.generate_content()` 무상태는 `88.5%`를 기록했으며 모두 미캐시 tail 약 `2,049~2,057`토큰으로 공식 `caching.md`의 `2,050`토큰 재처리 규칙과 일치했습니다.
 
 ### Module 07: Antigravity Managed Agent 및 Neon + Hydrogen 페어링
 
@@ -97,11 +98,11 @@ Google GenAI Interactions API(`google-genai 3.3.0`), `models.generate_content()`
 
 ## 3. 측정 한계 돌파 결과 및 잔여 관찰 사항
 
-초기 버전에서 기록했던 4개 측정 한계를 모두 라이브 재설계·실측으로 돌파(`8 / 8 PASS`)했으며, 돌파 과정에서 새로 확인된 API 실측 특성도 빠짐없이 남깁니다.
+초기 버전에서 기록했던 4개 측정 한계를 모두 라이브 재설계·실측으로 돌파(`8 / 8 PASS`)했으며, 후속 대조 실험으로 확인된 플랫폼·서버 측 특성까지 함께 남깁니다.
 
-1. Module 01 초기 실패 해소(`7 / 8` -> `8 / 8`): `bench_01_frontier_speed_cost.py`에 `refill_rate >= 0.0`을 명시하고 `v1_ambiguous_spec_history`는 그대로 보존했습니다. `gemini-4-neon (high)`은 `78.33s`(`8,472`토큰, \$0.128550) 만에 라이브 통과했습니다. 재측정 시점(2026-11-25 07:35Z~07:54Z)에 Google `gemini-4-carbon` 엔드포인트에서 `504 DEADLINE_EXCEEDED` 및 `ReadTimeout` 장애가 발생해 Carbon `medium` 항목만 동일 프롬프트·채점기로 당일 라이브 통과한 `01B` 기록(`v1_ChdIV2tHYTdHakJJYjYycm9QNzltSXlBURIXSFdrR2E3R2pCSWI2MnJvUDc5bUl5QVE`)을 교차 인용했고, 전체 총비용(\$9.478828)에서 \$0.051590을 차감해 중복 계상을 막았습니다.
-2. Module 06E 라이브 64K 초과 멀티홉 돌파: 서버 주도 `background=True`(`134,742`토큰, 3-hop, `173801` 정답 일치)와 클라이언트 주도 `automatic_continuation=False`(`83,778`토큰, 2-hop, `65,536` 경계 및 `700/700` NDJSON 무손실 이어붙이기) 두 방식을 모두 라이브로 검증했습니다. 잔여 관찰 사항으로, 멀티홉 이어받기 자체의 재프리필 입력(`360,965`토큰, `66,329`토큰)에서는 암묵적 캐시 히트가 0(`total_cached_tokens=0`)으로 정가 입력 단가가 부과되었으며, SDK `UserWarning` 문구("each continuation hop re-prefills and bills input tokens")와 일치합니다.
-3. Module 06D 암묵적 캐싱 원인 규명 및 무상태 히트 돌파: 4조건 실측 결과 `interactions.create`는 `previous_interaction_id`가 없으면 `store=False`/`store=True` 모두 `0.0%`였고(`interactions-overview.md` Limitations의 "server-side implicit caching is available in the Interactions API via `previous_interaction_id`"와 일치), `previous_interaction_id`를 전달하자 `87.5%` -> `87.8%` 연속 히트가 나왔습니다. 무상태 95% 할인 암묵적 캐시는 `models.generate_content()`에서 `88.5%`(미캐시 tail `2,057`토큰)로 실증되었으며, 무상태 호출은 백엔드 레플리카 라우팅에 따라 후속 콜(`C2`/`C3`)에서 `0.0%`로 변동하는 best-effort 특성이 관측되었습니다(별도 3연속 프로브에서는 3회 모두 `88.2%` 히트).
+1. Module 01 초기 실패 해소(`7 / 8` -> `8 / 8`): `bench_01_frontier_speed_cost.py`에 `refill_rate >= 0.0`을 명시하고 `v1_ambiguous_spec_history`는 그대로 보존했습니다. `gemini-4-neon (high)`은 `78.33s`(`8,472`토큰, \$0.128550) 만에 라이브 통과했습니다. 재측정 및 후속 점검 시점(2026-11-25 07:35Z~08:25Z) 동안 Google `gemini-4-carbon` 엔드포인트에서 `504 DEADLINE_EXCEEDED` 및 `ReadTimeout` 장애가 지속되어 Carbon `medium` 항목만 동일 프롬프트·채점기로 당일 라이브 통과한 `01B` 기록(`v1_ChdIV2tHYTdHakJJYjYycm9QNzltSXlBURIXSFdrR2E3R2pCSWI2MnJvUDc5bUl5QVE`)을 교차 인용했고, 전체 순비용(\$10.931372)에서 \$0.051590을 차감해 중복 계상을 막았습니다.
+2. Module 06E 라이브 64K 초과 멀티홉 돌파(3종 실측): 서버 주도 `background=True`(`134,742`토큰, 3-hop, `173801` 정답 일치), 클라이언트 주도 `automatic_continuation=False`(`83,778`토큰, 2-hop, `65,536` 경계 및 `700/700` NDJSON 무손실 이어붙이기), 15,275토큰 입력 대조군(`72,598`토큰, 2-hop, `605/605` NDJSON)을 모두 라이브 검증했습니다. 공식 `long-decode.md`는 홉 반복 입력의 95% 암묵적 캐시 할인을 안내하지만, 15,275토큰(`> 4,096`) 입력 대조군을 포함한 3종 모두 이어받기 홉에서 `total_cached_tokens=0`으로 정가 입력 단가가 부과되었습니다(`~400s` Hop 1 소요에 따른 TTL 경계 또는 서버 측 미반영). `gemini-4-neon`은 명시적 캐싱(`cachedContents`) 미지원 모델이라 클라이언트에서 강제할 수 없으므로 예산 산정 시 정가 재프리필을 반영해야 합니다.
+3. Module 06D 무상태 암묵적 캐싱 완전 돌파(5조건 매트릭스): `interactions.create(store=False)`에서 단발 호출 반복은 `0.0%`였지만, 공식 무상태 히스토리 규격(`[user_input, *r1.steps, user_input_2]`)을 적용하자 **`86.9%` -> `87.1%`** 연속 무상태 캐시 히트가 터졌습니다. 상태 유지 `previous_interaction_id`는 `87.5%` -> `87.8%`, `models.generate_content()` 무상태는 `88.5%`를 기록했습니다. 단, 명시적 캐싱이 없는 모델 특성상 `generateContent` 무상태 단발 호출은 레플리카 라우팅에 따라 후속 호출(`C2`/`C3`)이 `0.0%`로 변동하는 best-effort 특성이 남습니다(별도 3회 프로브에서는 3회 모두 `88.2%`).
 4. Module 04 `ResourceWarning` 근본 제거: `bench_04_cybersecurity_reliability.py`에 CWE-404 SQLite 연결 종료 요건, AST `closes_sqlite_connections` 검사, `python -W error::ResourceWarning` 게이트를 추가해 재측정했고, 경고 0건으로 5/5 테스트 및 6/6 AST 검사를 모두 통과했습니다.
 
 ## 4. 실행 방법

@@ -153,56 +153,61 @@ def _render_m6_chart(m6: dict[str, Any]) -> Path:
     part_e = m6.get("part_e_live_over_64k_multihop", {})
     bg = part_e.get("server_side_background_134k", {})
     cs = part_e.get("client_side_continuation_84k", {})
+    cs15 = part_e.get("client_side_continuation_15k_input_cache_control", {})
     part_d = m6.get("part_d_implicit_caching_matrix", {})
 
     plt.style.use("dark_background")
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 4.0), dpi=140)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13.6, 4.2), dpi=140)
 
-    # Left panel: Live >64K Multi-Hop Long Decode vs 65,536 single-hop limit
+    # Left panel: Live >64K Multi-Hop Long Decode (3 live experiments vs 65,536 limit)
     ld_labels = [
         "Single-Hop\nLimit",
-        "Client 2-Hop\n(low, 700 NDJSON)",
-        "Server 3-Hop\n(xhigh, GT=173801)",
+        "Client 2-Hop\n(15K-In Control)",
+        "Client 2-Hop\n(700 NDJSON)",
+        "Server 3-Hop\n(xhigh, 173801)",
         "Server 3-Hop\nCumul. Input",
     ]
     ld_vals = [
         65536,
+        int(cs15.get("combined_output_plus_thought_tokens", 0)),
         int(cs.get("combined_output_plus_thought_tokens", 0)),
         int(bg.get("combined_output_plus_thought_tokens", 0)),
         int(bg.get("multihop_cumulative_input_tokens", 0)),
     ]
-    ld_colors = ["#64748b", "#38bdf8", "#a855f7", "#f59e0b"]
+    ld_colors = ["#64748b", "#22d3ee", "#38bdf8", "#a855f7", "#f59e0b"]
     bars1 = ax1.bar(ld_labels, ld_vals, color=ld_colors)
     ax1.axhline(65536, color="#ef4444", linestyle="--", linewidth=1.3, label="65,536 Single-Hop Wall")
-    ax1.set_title("Live >64K Multi-Hop Long Decode (Tokens)", fontweight="bold", fontsize=10)
+    ax1.set_title("Live >64K Multi-Hop Long Decode (3 Runs, Tokens)", fontweight="bold", fontsize=10)
     ax1.set_ylim(0, max(ld_vals) * 1.16)
-    ax1.tick_params(axis="x", labelsize=8)
+    ax1.tick_params(axis="x", labelsize=7.5)
     for bar, v in zip(bars1, ld_vals):
-        ax1.text(bar.get_x() + bar.get_width() / 2, v + max(ld_vals) * 0.025, f"{v:,}", ha="center", fontsize=8, fontweight="bold")
+        ax1.text(bar.get_x() + bar.get_width() / 2, v + max(ld_vals) * 0.025, f"{v:,}", ha="center", fontsize=7.5, fontweight="bold")
     ax1.legend(loc="upper left", fontsize=8)
 
-    # Right panel: 4-Condition Implicit Caching Matrix
+    # Right panel: 5-Condition Implicit Caching Matrix
     cache_labels = [
-        "Interactions\nstore=False\n(Stateless)",
+        "Interactions\nstore=False\n(Single)",
         "Interactions\nstore=True\n(No prev_id)",
+        "Interactions\nstore=False\n(steps hist.)",
         "Interactions\nStateful\n(prev_id)",
-        "GenerateContent\nStateless\n(Prefix Repeat)",
+        "GenerateContent\nStateless\n(Prefix)",
     ]
     cache_vals = [
         0.0,
         float(part_d.get("stateless_interactions_peak_hit_ratio", 0.0)) * 100.0,
+        float(part_d.get("stateless_interactions_steps_peak_hit_ratio", 0.0)) * 100.0,
         float(part_d.get("stateful_interactions_peak_hit_ratio", 0.0)) * 100.0,
         float(part_d.get("stateless_generate_content_peak_hit_ratio", 0.0)) * 100.0,
     ]
-    cache_colors = ["#475569", "#475569", "#10b981", "#38bdf8"]
+    cache_colors = ["#475569", "#475569", "#34d399", "#10b981", "#38bdf8"]
     bars2 = ax2.bar(cache_labels, cache_vals, color=cache_colors)
-    ax2.set_title("Implicit Caching Peak Hit Rate by API Mode (%)", fontweight="bold", fontsize=10)
+    ax2.set_title("Implicit Caching Peak Hit Rate (5 API Modes, %)", fontweight="bold", fontsize=10)
     ax2.set_ylim(0, 108)
-    ax2.tick_params(axis="x", labelsize=8)
+    ax2.tick_params(axis="x", labelsize=7.5)
     for bar, v in zip(bars2, cache_vals):
-        ax2.text(bar.get_x() + bar.get_width() / 2, v + 2.5, f"{v:.1f}%", ha="center", fontsize=8.5, fontweight="bold")
+        ax2.text(bar.get_x() + bar.get_width() / 2, v + 2.5, f"{v:.1f}%", ha="center", fontsize=8, fontweight="bold")
 
-    fig.suptitle("Module 6 Breakthrough: Live >64K Multi-Hop Long Decode & 4-Condition Implicit Caching", fontsize=11.5, fontweight="bold")
+    fig.suptitle("Module 6 Breakthrough: 3x Live >64K Multi-Hop Long Decode & 5-Mode Implicit Caching", fontsize=11.5, fontweight="bold")
     fig.tight_layout()
     fig.savefig(out, facecolor="#0f172a")
     plt.close(fig)
@@ -233,7 +238,7 @@ def generate_dashboard() -> Path:
         ("03", "Knowledge Work, Science & Multimodal Synthesis", m3),
         ("04", "Cybersecurity Root-Cause Patching (Zero ResourceWarning) & Guardrails", m4),
         ("05", "Four Configurable Thinking Levels (low/med/high/xhigh)", m5),
-        ("06", "Unified 1M Context, Live >64K Multi-Hop Long Decode & 3-Mode Caching", m6),
+        ("06", "Unified 1M Context, 3x Live >64K Multi-Hop Long Decode & 5-Mode Caching", m6),
         ("07", "Antigravity Managed Agents & Neon+Hydrogen Pairing", m7),
     ]
 
@@ -311,7 +316,7 @@ def generate_dashboard() -> Path:
         "03": "10/10 cross-domain synthesis (Legal Addendum + Finance CSV + PNG Chart + Arrhenius 62.5 kJ/mol) in 59.93s",
         "04": "6 CWE root-cause patches PASS under strict python -W error::ResourceWarning (0 warnings) + 6/6 AST audit + 0 under-service / 0 overreach",
         "05": "low (11,733) -> medium (19,745) -> high (40,442) -> xhigh (89,115 tok, 7.60x); all 4 levels 2/2 PASS + minimal HTTP 400 rejected",
-        "06": "Live >64K multi-hop PASS (Server bg 134,742 tok / 3 hops / GT 173801; Client 83,778 tok / 2 hops / 700/700 NDJSON); 88.5% stateless generateContent & 87.8% stateful Interactions cache",
+        "06": "3x live >64K multi-hop PASS (Server bg 134,742 tok / 3 hops / GT 173801; Client 83,778 tok & 15K-input control 72,598 tok); 5-mode cache (store=False steps 87.1%, stateful 87.8%, generateContent 88.5%)",
         "07": "v1beta remote Linux Antigravity Managed Agent PASS (53.1% cache); Neon->Hydrogen 2.58x faster, -40.1% cost",
     }
     for num, title, data in modules:
@@ -400,9 +405,9 @@ def generate_dashboard() -> Path:
         <span class="badge pass">4 / 4 RESOLVED</span>
       </div>
       <ol style="margin:12px 0 0;padding-left:20px;font-size:13px;color:#e5e7eb;">
-        <li style="margin-bottom:6px;"><strong>Module 01 resolved (7 / 8 -&gt; 8 / 8 PASS):</strong> Clarified <code>refill_rate &gt;= 0.0</code> in <code>bench_01_frontier_speed_cost.py</code> while preserving <code>v1_ambiguous_spec_history</code>. <code>gemini-4-neon (high)</code> passed live in 78.33s (8,472 tok, $0.128550). Because <code>gemini-4-carbon</code> experienced a transient Google backend <code>504 DEADLINE_EXCEEDED</code> outage during rerun (2026-11-25T07:35Z-07:54Z), Module 01 cross-references the verified live <code>01B</code> Carbon (medium) run on the identical spec and deducts $0.051590 from the grand total ($9.478828 net unique spend) to prevent double-counting.</li>
-        <li style="margin-bottom:6px;"><strong>Module 06E live &gt;64K multi-hop Long Decode resolved (both server &amp; client modes):</strong> (a) Server-side <code>background=True</code> (<code>xhigh</code>, 262K cap) generated <strong>134,742 tokens</strong> (41,928 out + 92,814 thought, 2.06x the 64K wall) across <strong>3 <code>model_output</code> hops</strong> (120,223 chars), proved <code>360,965</code> cumulative multi-hop input tokens vs 369-token prompt (978.2x inflation), and matched exact combinatorics ground truth <code>173801</code>. (b) Client-side <code>automatic_continuation=False</code> (<code>low</code>, 98K cap) stopped Hop 1 at exactly <strong>65,536 tokens</strong> (65,183 + 353) with <code>status="requires_continuation"</code> and a 279KB <code>continuation_token</code>, resumed Hop 2 (<code>66,329</code> input = 793 + 65,536), and stitched <strong>700 / 700 valid NDJSON records</strong> (0 invalid, 83,778 total tokens). Empirical nuance: continuation hop re-prefills billed at uncached input rates (<code>total_cached_tokens=0</code>).</li>
-        <li style="margin-bottom:6px;"><strong>Module 06D implicit caching resolved (4-condition live matrix):</strong> Stateless <code>models.generate_content()</code> achieved an <strong>88.5% stateless cache hit</strong> (15,804 / 17,861 tokens, 2,057-token uncached tail matching <code>caching.md</code>'s 2,050-token tail rule; best-effort replica routing across subsequent calls). Stateful <code>interactions.create(previous_interaction_id=...)</code> hit <strong>87.5% -&gt; 87.8%</strong> deterministically on consecutive turns ($0.135739 saved across 3 hit turns). Stateless <code>interactions.create</code> without <code>previous_interaction_id</code> (both <code>store=False</code> and <code>store=True</code>) remained 0.0%, confirming <code>interactions-overview.md</code>'s documented Interactions API limitation.</li>
+        <li style="margin-bottom:6px;"><strong>Module 01 resolved (7 / 8 -&gt; 8 / 8 PASS):</strong> Clarified <code>refill_rate &gt;= 0.0</code> in <code>bench_01_frontier_speed_cost.py</code> while preserving <code>v1_ambiguous_spec_history</code>. <code>gemini-4-neon (high)</code> passed live in 78.33s (8,472 tok, $0.128550). Because <code>gemini-4-carbon</code> experienced a persistent Google backend <code>504 DEADLINE_EXCEEDED / ReadTimeout</code> outage across probes (07:35Z-08:25Z), Module 01 cross-references the verified live <code>01B</code> Carbon (medium) run on the identical spec and deducts $0.051590 from the grand total ($10.931372 net unique spend) to prevent double-counting.</li>
+        <li style="margin-bottom:6px;"><strong>Module 06E live &gt;64K multi-hop Long Decode resolved (3 live runs, server + client + 15K-input cache control):</strong> (a) Server-side <code>background=True</code> (<code>xhigh</code>, 262K cap) generated <strong>134,742 tokens</strong> (41,928 out + 92,814 thought, 2.06x the 64K wall) across <strong>3 <code>model_output</code> hops</strong> (120,223 chars), proved <code>360,965</code> cumulative input vs 369-token prompt (978.2x inflation), and matched exact combinatorics ground truth <code>173801</code>. (b) Client-side <code>automatic_continuation=False</code> (<code>low</code>, 98K cap) stopped Hop 1 at exact <strong>65,536 tokens</strong> with a 279KB <code>continuation_token</code> and stitched <strong>700 / 700 NDJSON records</strong> (83,778 tok). (c) Controlled <strong>15,275-token initial input (&gt;4,096 cache threshold)</strong> 2-hop client run hit exact 65,536 on Hop 1 (399.16s), resumed Hop 2 (<code>80,811</code> input, 605/605 NDJSON, 72,598 tok), and still returned <code>total_cached_tokens=0 (0.0%)</code>, proving empirically that Long Decode continuation hops currently bill uncached input on <code>gemini-4-neon</code> despite <code>long-decode.md</code>'s 95% hop-discount note (server-side TTL/caching behavior not controllable client-side because explicit caching is unsupported).</li>
+        <li style="margin-bottom:6px;"><strong>Module 06D implicit caching resolved (5-mode live matrix, $0.220920 saved):</strong> Passing official stateless multi-turn <code>steps</code> history (<code>[user_input, *r1.steps, user_input_2]</code>) on <code>interactions.create(store=False)</code> broke the 0% ceiling with <strong>86.9% -&gt; 87.1%</strong> consecutive hits (14,852/17,085 and 15,036/17,260; uncached tail 2,057/2,049 matching <code>caching.md</code>'s 2,050-token rule; $0.085181 saved &gt; $0.075316 spent). Stateful <code>interactions.create(previous_interaction_id=...)</code> hit <strong>87.5% -&gt; 87.8%</strong>, and stateless <code>models.generate_content()</code> hit <strong>88.5%</strong> (best-effort replica routing across C2-C3; single-turn stateless Interactions remained 0.0%).</li>
         <li><strong>Module 04 zero <code>ResourceWarning</code> resolved (CWE-404):</strong> Added CWE-404 SQLite connection-closure requirement, AST check <code>closes_sqlite_connections</code>, and strict <code>python -W error::ResourceWarning</code> test gate. Live <code>gemini-4-neon</code> patch passed <strong>5 / 5 security &amp; regression tests with 0 warnings</strong> and <strong>6 / 6 AST checks</strong>.</li>
       </ol>
     </section>

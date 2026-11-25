@@ -1,6 +1,6 @@
 {
   "module": "06_unified_1m_long_decode",
-  "title": "Unified 1M context window, Live >64K Multi-Hop Long Decode & 3-Mode Implicit Caching",
+  "title": "Unified 1M context window, Live >64K Multi-Hop Long Decode (3x) & 5-Condition Implicit Caching",
   "part_a_budget_and_multihop_sim": {
     "budget_long_decode_262k": {
       "unified_limit": 1048576,
@@ -79,13 +79,13 @@
     }
   },
   "part_d_implicit_caching_matrix": {
-    "finding_summary": "Empirical 4-condition implicit caching matrix on gemini-4-neon (~17.8K-22.2K shared prefix): (1) interactions.create(store=False) stateless: 0.0% across 4 calls; (2) interactions.create(store=True) stateless without previous_interaction_id: 0.0% across 2 calls (matching interactions-overview.md Limitations: server-side implicit caching in Interactions API requires previous_interaction_id); (3) interactions.create(previous_interaction_id=...) stateful: 87.5% -> 87.8% deterministic hits (15,804/18,069 and 16,020/18,245); (4) models.generate_content() stateless: 88.5% stateless hit (15,804/17,861, uncached tail 2,057 tokens matching caching.md's 2,050-token tail rule; best-effort replica routing across subsequent calls).",
+    "finding_summary": "Empirical 5-condition implicit caching matrix on gemini-4-neon (~16.9K-22.2K shared prefix): (1) interactions.create(store=False) single-turn burst: 0.0% (4 calls); (2) interactions.create(store=True) single-turn without previous_interaction_id: 0.0% (2 calls); (3) interactions.create(store=False) official stateless steps-array multi-turn history: 86.9% -> 87.1% consecutive hits (14,852/17,085 and 15,036/17,260, uncached tail 2,057/2,049 matching caching.md 2,050-token rule, $0.085181 saved); (4) interactions.create(previous_interaction_id=...) stateful: 87.5% -> 87.8% consecutive hits ($0.090698 saved); (5) models.generate_content() stateless: 88.5% peak hit (15,804/17,861, uncached tail 2,057; best-effort replica routing on C2-C3).",
     "all_needles_ok": true,
     "cache_hit_observed": true,
     "stateless_generate_content_peak_hit_ratio": 0.8848,
     "stateful_interactions_peak_hit_ratio": 0.878,
     "stateless_interactions_peak_hit_ratio": 0.0,
-    "total_cache_savings_usd": "0.135739",
+    "total_cache_savings_usd": "0.220920",
     "interactions_store_false_stateless_4calls": [
       {
         "call_index": 1,
@@ -323,7 +323,76 @@
           "interaction_id": null
         }
       }
-    ]
+    ],
+    "interactions_store_false_stateless_steps_history": [
+      {
+        "turn": 1,
+        "needle_ok": true,
+        "answer": "STATELESS-STEPS-1104",
+        "cache_hit_ratio": 0.0,
+        "uncached_tail_tokens": 16909,
+        "saved_usd": "0.000000",
+        "usage": {
+          "model": "gemini-4-neon",
+          "elapsed_sec": 8.112,
+          "initial_input_tokens": 16909,
+          "total_input_tokens": 16909,
+          "total_cached_tokens": 0,
+          "total_output_tokens": 10,
+          "total_thought_tokens": 140,
+          "total_tokens": 17059,
+          "cost_usd": "0.052977",
+          "cost_usd_carbon_post_promo": null,
+          "status": "completed",
+          "interaction_id": ""
+        }
+      },
+      {
+        "turn": 2,
+        "needle_ok": true,
+        "answer": "STATELESS-STEPS-2208",
+        "cache_hit_ratio": 0.8693,
+        "uncached_tail_tokens": 2233,
+        "saved_usd": "0.042328",
+        "usage": {
+          "model": "gemini-4-neon",
+          "elapsed_sec": 6.388,
+          "initial_input_tokens": 17085,
+          "total_input_tokens": 17085,
+          "total_cached_tokens": 14852,
+          "total_output_tokens": 10,
+          "total_thought_tokens": 139,
+          "total_tokens": 17234,
+          "cost_usd": "0.011162",
+          "cost_usd_carbon_post_promo": null,
+          "status": "completed",
+          "interaction_id": ""
+        }
+      },
+      {
+        "turn": 3,
+        "needle_ok": true,
+        "answer": "STATELESS-STEPS-3312",
+        "cache_hit_ratio": 0.8711,
+        "uncached_tail_tokens": 2224,
+        "saved_usd": "0.042853",
+        "usage": {
+          "model": "gemini-4-neon",
+          "elapsed_sec": 16.853,
+          "initial_input_tokens": 17260,
+          "total_input_tokens": 17260,
+          "total_cached_tokens": 15036,
+          "total_output_tokens": 10,
+          "total_thought_tokens": 140,
+          "total_tokens": 17410,
+          "cost_usd": "0.011177",
+          "cost_usd_carbon_post_promo": null,
+          "status": "completed",
+          "interaction_id": ""
+        }
+      }
+    ],
+    "stateless_interactions_steps_peak_hit_ratio": 0.8711
   },
   "part_e_live_over_64k_multihop": {
     "passed": true,
@@ -483,17 +552,78 @@
           }
         }
       ]
-    }
+    },
+    "client_side_continuation_15k_input_cache_control": {
+      "passed": true,
+      "initial_prompt_tokens": 15275,
+      "target_records": 605,
+      "hops_executed": 2,
+      "final_status": "completed",
+      "combined_output_plus_thought_tokens": 72598,
+      "hop2_input_tokens": 80811,
+      "hop2_cached_tokens": 0,
+      "hop2_cache_hit_ratio": 0.0,
+      "hop2_implicit_cache_triggered": false,
+      "valid_ndjson_records": 605,
+      "invalid_ndjson_lines": 0,
+      "total_elapsed_sec": 447.274,
+      "total_cost_usd": "1.377228",
+      "hops": [
+        {
+          "hop": 1,
+          "status": "requires_continuation",
+          "has_continuation_token": true,
+          "chunk_chars": 187638,
+          "usage": {
+            "model": "gemini-4-neon",
+            "elapsed_sec": 399.164,
+            "initial_input_tokens": 15275,
+            "total_input_tokens": 15275,
+            "total_cached_tokens": 0,
+            "total_output_tokens": 65026,
+            "total_thought_tokens": 510,
+            "total_tokens": 80811,
+            "cost_usd": "1.028865",
+            "cost_usd_carbon_post_promo": null,
+            "status": "requires_continuation",
+            "interaction_id": "v1_ChdLWnNHYTdMRkpmeXoycm9QbzZQajRBZxIXS1pzR2E3TEZKZnl6MnJvUG82UGo0QWc"
+          }
+        },
+        {
+          "hop": 2,
+          "status": "completed",
+          "has_continuation_token": false,
+          "cache_hit_ratio": 0.0,
+          "saved_usd": "0.000000",
+          "chunk_chars": 20368,
+          "usage": {
+            "model": "gemini-4-neon",
+            "elapsed_sec": 48.11,
+            "initial_input_tokens": 15275,
+            "total_input_tokens": 80811,
+            "total_cached_tokens": 0,
+            "total_output_tokens": 7062,
+            "total_thought_tokens": 0,
+            "total_tokens": 87873,
+            "cost_usd": "0.348363",
+            "cost_usd_carbon_post_promo": null,
+            "status": "completed",
+            "interaction_id": "v1_ChdLWnNHYTdMRkpmeXoycm9QbzZQajRBZxIWdHB3R2E3aTFOWUt3MnJvUDJfS2ZZQQ"
+          }
+        }
+      ]
+    },
+    "multihop_cache_control_finding": "Across all 3 live >64K multi-hop runs on gemini-4-neon (369-tok server bg 3-hop, 793-tok client 2-hop, and 15,275-tok >4,096 client 2-hop control), continuation hop re-prefills returned total_cached_tokens=0 (0.0%), confirming a server-side caching gap/TTL boundary (~400s Hop-1 duration) relative to long-decode.md's 95% hop-discount note."
   },
   "cost_summary": {
-    "calls": 16,
-    "total_elapsed_sec": 2273.184,
-    "total_input_tokens": 642605,
-    "total_cached_tokens": 47628,
-    "total_output_tokens": 127860,
-    "total_thought_tokens": 97470,
-    "total_cost_usd": "5.172026"
+    "calls": 21,
+    "total_elapsed_sec": 2751.811,
+    "total_input_tokens": 789945,
+    "total_cached_tokens": 77516,
+    "total_output_tokens": 199978,
+    "total_thought_tokens": 98399,
+    "total_cost_usd": "6.624570"
   },
   "overall_pass": true,
-  "recorded_at_utc": "2026-11-25T07:56:16.173196+00:00"
+  "recorded_at_utc": "2026-11-25T08:32:55.391035+00:00"
 }
