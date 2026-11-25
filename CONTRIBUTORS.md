@@ -2,7 +2,7 @@
 
 | Contributor | Role | Key Contributions |
 | :--- | :--- | :--- |
-| <img src="https://github.com/hobby-programmer-5000.png?size=48" width="24" height="24" align="absmiddle" alt="hobby-programmer-5000" /> [`@hobby-programmer-5000`](https://github.com/hobby-programmer-5000) | Human Project Owner & Verification Director | 릴리스 노트 7개 항목 전수 실측 검증 기획, 유료 티어 API 환경 제공, `anti-slop-editor` 전체 파일 품질 점검 및 `reference-fact-check` 감사 지시, MIT 라이선스 및 공개 저장소 배포 거버넌스 확정 |
+| <img src="https://github.com/hobby-programmer-5000.png?size=48" width="24" height="24" align="absmiddle" alt="hobby-programmer-5000" /> [`@hobby-programmer-5000`](https://github.com/hobby-programmer-5000) | Human Project Owner & Verification Director | Google AI Studio [What's new in Gemini 4 Neon](https://aistudio.google.com/docs/whats-new-gemini-4-neon) 7개 항목 전수 실측 검증 기획, 유료 티어 API 환경 제공, `anti-slop-editor` 전체 파일 품질 점검 및 `reference-fact-check` 감사 지시, MIT 라이선스 및 공개 저장소 배포 거버넌스 확정 |
 | <img src="https://github.com/antigravity-bot.png?size=48" width="24" height="24" align="absmiddle" alt="antigravity-bot" /> [`@antigravity-bot`](https://github.com/antigravity-bot) | AI Engineering & Verification Partner (`Google Antigravity`, `Gemini 4 Neon XHigh`) | Gemini Docs MCP 1차 스펙 대조, 7개 실전 벤치마크 모듈 및 공정 비교 추가 모듈(`01B`) 구현, 픽스처(6개 파일 원장 저장소, 법률·재무·차트·Arrhenius 팩, 5대 CWE 취약 앱) 및 `unittest`/AST 하네스 작성, 라이브 API 실행 및 정밀 `Decimal` 비용 정산, HTML 대시보드 생성, `slop_engine.py` 및 `ref_factcheck` 사후 검증, Zero-PII 공개 패키징 |
 
 ## 역할 분담 상세
@@ -11,7 +11,7 @@
 
 연락처: `hobbyprogrammer5000@gmail.com`
 
-1. 실험 목표와 범위 설정: "What's new in Gemini 4 Neon" 릴리스 노트에 적힌 7개 항목을 하나도 빠뜨리지 않고 실제 동작하는 코드와 라이브 API로 검증하도록 지시했습니다.
+1. 실험 목표와 범위 설정: Google AI Studio 공식 문서([What's new in Gemini 4 Neon](https://aistudio.google.com/docs/whats-new-gemini-4-neon))에 소개된 7개 항목을 하나도 빠뜨리지 않고 실제 동작하는 코드와 라이브 API로 검증하도록 지시했습니다.
 2. 실행 환경 및 예산 경계: 유료 티어 Gemini API 실행 환경을 제공하고, Module 5 `xhigh` 단계에서 프로젝트 월간 지출 한도(`HTTP 429`)에 도달했을 때 추가 과금 없이 실측 상태 그대로 보존하는 방향을 확정했습니다.
 3. 품질 감사 및 공개 배포 지시: 생성된 전 파일에 `anti-slop-editor`와 `reference-fact-check`를 적용하도록 지시했고, MIT 라이선스 및 인간-AI 공동 기여 표기 원칙을 정했습니다.
 

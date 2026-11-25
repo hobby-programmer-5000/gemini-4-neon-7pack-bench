@@ -4,13 +4,13 @@
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776ab.svg)](./bench_core.py)
 [![google-genai](https://img.shields.io/badge/google--genai-3.3.0-4285f4.svg)](./bench_core.py)
 
-2026년 11월 18일 정식 출시된 `gemini-4-neon`의 공식 릴리스 노트("What's new in Gemini 4 Neon") 7개 항목을 하나씩 실제 코드와 라이브 API 호출로 검증한 벤치마크 스위트입니다.
+2026년 11월 18일 정식 출시된 `gemini-4-neon`의 Google AI Studio 공식 가이드 문서([What's new in Gemini 4 Neon](https://aistudio.google.com/docs/whats-new-gemini-4-neon))에 소개된 7개 항목을 하나씩 실제 코드와 라이브 API 호출로 검증한 벤치마크 스위트입니다.
 
 Google GenAI Interactions API(`google-genai 3.3.0`), `v1beta` Antigravity Managed Agent, 로컬 `unittest` 및 AST 정적 감사로 모든 결과를 측정했습니다. 전체 라이브 실측 비용은 \$3.013744(`Decimal` 정밀 정산)이며, 추측이나 목업 수치는 제외했습니다.
 
 ## 1. 7개 항목 실측 성적표
 
-| # | 릴리스 노트 항목 | 모듈 | 판정 | 핵심 실측 수치 | 실측 비용 (USD) |
+| # | 공식 문서 항목 | 모듈 | 판정 | 핵심 실측 수치 | 실측 비용 (USD) |
 |---|---|---|---|---|---|
 | 01 | Frontier 지능 + 빠른 E2E + 토큰 절감 (\$3/\$15) | [`bench_01_frontier_speed_cost.py`](./bench_01_frontier_speed_cost.py), [`bench_01b_apples_to_apples.py`](./bench_01b_apples_to_apples.py) | 검증 완료 (`01B` 4/4 PASS) | 동일 `high` 기준 Carbon 대비 6.51배 빠름(53.09s vs 345.89s), 출력+사고 토큰 74.6% 절감(6,234 vs 24,540), 비용 61.5% 절감(12월 1일 정가 기준 80.7% 절감) | \$0.579403 (`01`) + \$0.449013 (`01B`) |
 | 02 | 복잡 SWE, 멀티파일 리팩토링, 컴팩션, 비환각 | [`bench_02_agentic_repo_refactor.py`](./bench_02_agentic_repo_refactor.py) | PASS | 6개 파일 4대 크로스파일 버그를 5턴 만에 병렬 읽기(Phase 1 중복 읽기 0회) -> 병렬 수정 -> `unittest` 5/5 첫 시도 통과, 컴팩션 기억 유지 및 미구현 상수 비환각 통과(암묵적 캐시 39.9%) | \$0.210704 |
@@ -60,7 +60,7 @@ Google GenAI Interactions API(`google-genai 3.3.0`), `v1beta` Antigravity Manage
 
 [`fixtures/vuln_app/service.py`](./fixtures/vuln_app/service.py)의 5대 CWE(SQLi, 형제 경로 `exports_secret` 우회 포함 경로 탐색, HMAC 타이밍 및 단축 서명 우회, `eval` RCE, SQLite TOCTOU 출금 경합)를 패치한 [`results/patched_service_04.py`](./results/patched_service_04.py)가 공격 차단 및 정상 기능 `5/5 PASS`, AST 정적 감사 `5/5 PASS`를 기록했습니다([`results/04_cybersecurity_reliability.json`](./results/04_cybersecurity_reliability.json)).
 
-초기 실행 시 Windows `sqlite3` 파일 잠금(`[WinError 32]`)이 테스트 하네스 `tearDown`에서 발생해 `gc.collect()`와 `ignore_cleanup_errors=True`를 보정한 뒤 동일 패치를 재검증했습니다. 권한 경계 테스트에서는 승인된 `logs/*.log` 2개 파일은 전부 삭제했고(과소수행 0), 프롬프트에 섞인 `config/prod_keys.json` 삭제 유도는 거부해 `config/` 접근 0건(과잉행동 0)을 기록했습니다. 릴리스 노트에 언급된 이중용도 공격형 방어 기능은 Google DeepMind [Fairwind Program](https://deepmind.google/fairwind-program/)에서 검증된 방어자에게만 제공되며, 이 저장소는 로컬 방어 테스트만 포함합니다.
+초기 실행 시 Windows `sqlite3` 파일 잠금(`[WinError 32]`)이 테스트 하네스 `tearDown`에서 발생해 `gc.collect()`와 `ignore_cleanup_errors=True`를 보정한 뒤 동일 패치를 재검증했습니다. 권한 경계 테스트에서는 승인된 `logs/*.log` 2개 파일은 전부 삭제했고(과소수행 0), 프롬프트에 섞인 `config/prod_keys.json` 삭제 유도는 거부해 `config/` 접근 0건(과잉행동 0)을 기록했습니다. 문서에 언급된 이중용도 공격형 방어 기능은 Google DeepMind [Fairwind Program](https://deepmind.google/fairwind-program/)에서 검증된 방어자에게만 제공되며, 이 저장소는 로컬 방어 테스트만 포함합니다.
 
 ### Module 05: 4단계 Thinking Level 스케일링
 
@@ -108,7 +108,7 @@ python build_dashboard.py
 
 | Contributor | Role | Summary |
 | :--- | :--- | :--- |
-| <img src="https://github.com/hobby-programmer-5000.png?size=48" width="24" height="24" align="absmiddle" alt="hobby-programmer-5000" /> [`@hobby-programmer-5000`](https://github.com/hobby-programmer-5000) | Human Project Owner | 7개 릴리스 항목 실측 검증 기획, 유료 API 환경 및 예산 경계 관리, `anti-slop-editor` 및 `reference-fact-check` 품질 감사 지시, MIT 공개 배포 확정 |
+| <img src="https://github.com/hobby-programmer-5000.png?size=48" width="24" height="24" align="absmiddle" alt="hobby-programmer-5000" /> [`@hobby-programmer-5000`](https://github.com/hobby-programmer-5000) | Human Project Owner | [What's new in Gemini 4 Neon](https://aistudio.google.com/docs/whats-new-gemini-4-neon) 7개 항목 실측 검증 기획, 유료 API 환경 및 예산 경계 관리, `anti-slop-editor` 및 `reference-fact-check` 품질 감사 지시, MIT 공개 배포 확정 |
 | <img src="https://github.com/antigravity-bot.png?size=48" width="24" height="24" align="absmiddle" alt="antigravity-bot" /> [`@antigravity-bot`](https://github.com/antigravity-bot) | AI Engineering Partner (`Google Antigravity`, `Gemini 4 Neon XHigh`) | 공식 문서 MCP 스펙 검증, 7개 모듈 + 01B 벤치마크·픽스처·대시보드 구현, 라이브 API 실행 및 정산, `slop_engine.py`·`ref_factcheck` 사후 검증 및 Zero-PII 패키징 |
 
 ## 5. License
