@@ -1,8 +1,11 @@
 # Gemini 4 Neon 7-Pack Live Benchmark
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![Live Dashboard](https://img.shields.io/badge/Live%20Dashboard-GitHub%20Pages-4fb3a2.svg)](https://hobby-programmer-5000.github.io/gemini-4-neon-7pack-bench/)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776ab.svg)](./bench_core.py)
 [![google-genai](https://img.shields.io/badge/google--genai-3.3.0-4285f4.svg)](./bench_core.py)
+
+라이브 벤치마크 대시보드: https://hobby-programmer-5000.github.io/gemini-4-neon-7pack-bench/
 
 2026년 11월 18일 정식 출시된 `gemini-4-neon`의 Google AI Studio 공식 가이드 문서([What's new in Gemini 4 Neon](https://aistudio.google.com/docs/whats-new-gemini-4-neon))에 소개된 7개 항목을 하나씩 실제 코드와 라이브 API 호출로 검증한 벤치마크 스위트입니다.
 

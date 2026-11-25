@@ -222,31 +222,64 @@ def generate_dashboard() -> Path:
         </section>
         """)
 
+    summary_rows_html = []
+    highlights = {
+        "01": "Default thinking levels: Hydrogen (high) 3/3, Neon (high) 2/3, Carbon (medium) 2/3; science error 1.1e-11",
+        "01B": "Matched high level: Neon 6.51x faster (53.1s vs 345.9s), 74.6% fewer tokens, 61.5%-80.7% lower cost",
+        "02": "6-file 4-bug repo refactored in 5 turns (0 Phase-1 redundant reads, 5/5 unittest PASS, 39.9% implicit cache)",
+        "03": "10/10 cross-domain synthesis (Legal Addendum + Finance CSV + PNG Chart + Arrhenius 62.5 kJ/mol) in 59.93s",
+        "04": "5/5 CWE root-cause patches PASS + 5/5 AST audit + 0 under-service / 0 overreach boundary check",
+        "05": "low (11,733 tok) -> medium (19,745 tok) -> high (40,442 tok) all 2/2 PASS (5247); xhigh hit 429 spend cap",
+        "06": "Unified 1M budget + 3-hop unit test PASS; live background (131K cap) & client-side continuation PASS",
+        "07": "v1beta remote Linux Antigravity Managed Agent PASS (53.1% cache); Neon->Hydrogen 2.58x faster, -40.1% cost",
+    }
+    for num, title, data in modules:
+        c = _mod_cost(data)
+        st = "PASS" if (data and data.get("overall_pass")) else "REVIEW"
+        cls = "pass" if st == "PASS" else "fail"
+        summary_rows_html.append(
+            f"<tr><td><strong>#{html.escape(num)}</strong></td>"
+            f"<td>{html.escape(title)}</td>"
+            f"<td><span class='badge {cls}'>{st}</span></td>"
+            f"<td>{html.escape(highlights.get(num, ''))}</td>"
+            f"<td style='text-align:right;font-variant-numeric:tabular-nums;'>${c:.6f}</td></tr>"
+        )
+
     html_doc = f"""<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Gemini 4 Neon: 7-Feature Live Benchmark Report</title>
   <style>
     :root {{ --bg:#0b1120; --card:#111827; --border:#1f2937; --text:#e5e7eb; --muted:#9ca3af; --accent:#a855f7; }}
-    body {{ font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:var(--bg); color:var(--text); margin:0; padding:32px; line-height:1.5; }}
+    body {{ font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:var(--bg); color:var(--text); margin:0; padding:32px 20px; line-height:1.5; }}
     .wrap {{ max-width:1180px; margin:0 auto; }}
     header {{ display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid var(--border); padding-bottom:20px; margin-bottom:24px; flex-wrap:wrap; gap:16px; }}
     h1 {{ margin:0; font-size:28px; background:linear-gradient(90deg,#38bdf8,#a855f7,#f472b6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }}
-    .kpi-grid {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:26px; }}
+    .nav {{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }}
+    .nav a {{ color:#93c5fd; text-decoration:none; font-size:13px; border:1px solid var(--border); padding:4px 10px; border-radius:8px; background:#0f172a; }}
+    .nav a:hover {{ border-color:#60a5fa; }}
+    .kpi-grid {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:24px; }}
     .kpi {{ background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; }}
     .kpi .label {{ font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; }}
     .kpi .val {{ font-size:26px; font-weight:700; margin-top:4px; color:#f8fafc; }}
+    .table-wrap {{ overflow-x:auto; background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:24px; }}
+    table {{ width:100%; border-collapse:collapse; font-size:13px; }}
+    th, td {{ padding:10px 12px; border-bottom:1px solid var(--border); text-align:left; vertical-align:top; }}
+    th {{ color:var(--muted); font-weight:600; text-transform:uppercase; font-size:11px; letter-spacing:0.05em; }}
     .card {{ background:var(--card); border:1px solid var(--border); border-radius:14px; padding:20px; margin-bottom:20px; }}
     .card-head {{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }}
     .card h2 {{ margin:0; font-size:18px; }}
-    .badge {{ padding:4px 12px; border-radius:999px; font-size:12px; font-weight:700; }}
+    .badge {{ padding:3px 10px; border-radius:999px; font-size:11px; font-weight:700; white-space:nowrap; }}
     .badge.pass {{ background:#064e3b; color:#6ee7b7; border:1px solid #10b981; }}
     .badge.fail {{ background:#7f1d1d; color:#fca5a5; border:1px solid #ef4444; }}
     .chart {{ width:100%; max-width:960px; border-radius:10px; margin:16px 0; border:1px solid var(--border); display:block; }}
     details {{ margin-top:12px; }}
     summary {{ cursor:pointer; color:#93c5fd; font-weight:600; font-size:14px; }}
     pre {{ background:#030712; padding:14px; border-radius:10px; overflow:auto; max-height:420px; font-size:12px; color:#cbd5e1; border:1px solid var(--border); }}
+    footer {{ margin-top:32px; padding-top:16px; border-top:1px solid var(--border); color:var(--muted); font-size:12px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; }}
+    footer a {{ color:#93c5fd; text-decoration:none; }}
   </style>
 </head>
 <body>
@@ -254,7 +287,13 @@ def generate_dashboard() -> Path:
     <header>
       <div>
         <h1>Gemini 4 Neon: 7-Feature Live Verification Suite</h1>
-        <p style="margin:6px 0 0;color:var(--muted);">Real Interactions API (google-genai 3.3.0) + Local Execution Graders</p>
+        <p style="margin:6px 0 0;color:var(--muted);">Live Interactions API (google-genai 3.3.0) + Local Execution Graders</p>
+        <div class="nav">
+          <a href="https://github.com/hobby-programmer-5000/gemini-4-neon-7pack-bench" target="_blank" rel="noopener">GitHub Repository</a>
+          <a href="https://aistudio.google.com/docs/whats-new-gemini-4-neon" target="_blank" rel="noopener">What's new in Gemini 4 Neon (Official Guide)</a>
+          <a href="https://github.com/hobby-programmer-5000/gemini-4-neon-7pack-bench/blob/main/CONTRIBUTORS.md" target="_blank" rel="noopener">Contributors</a>
+          <a href="https://github.com/hobby-programmer-5000/gemini-4-neon-7pack-bench/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
+        </div>
       </div>
       <div style="color:var(--muted);font-size:13px;">Pricing Baseline: $3.00 / 1M input &middot; $0.15 / 1M cached &middot; $15.00 / 1M output+thinking</div>
     </header>
@@ -264,7 +303,21 @@ def generate_dashboard() -> Path:
       <div class="kpi"><div class="label">Unified Context Window</div><div class="val">1,048,576 tok</div></div>
       <div class="kpi"><div class="label">Thinking Levels</div><div class="val">low &rarr; xhigh</div></div>
     </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Module</th><th>Status</th><th>Measured Result</th><th style="text-align:right;">Cost (USD)</th></tr>
+        </thead>
+        <tbody>
+          {''.join(summary_rows_html)}
+        </tbody>
+      </table>
+    </div>
     {''.join(cards_html)}
+    <footer>
+      <div>Built by <a href="https://github.com/hobby-programmer-5000">@hobby-programmer-5000</a> &amp; <a href="https://github.com/antigravity-bot">@antigravity-bot</a> (Google Antigravity / Gemini 4 Neon XHigh)</div>
+      <div>MIT License &middot; Zero-PII Public Telemetry</div>
+    </footer>
   </div>
 </body>
 </html>"""
