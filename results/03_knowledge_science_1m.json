@@ -1,0 +1,62 @@
+{
+  "module": "03_knowledge_science_1m",
+  "title": "Knowledge work, science & multimodal synthesis (Legal + Finance + Chart + Arrhenius)",
+  "usage": {
+    "model": "gemini-4-neon",
+    "elapsed_sec": 59.933,
+    "initial_input_tokens": 14001,
+    "total_input_tokens": 14001,
+    "total_cached_tokens": 0,
+    "total_output_tokens": 520,
+    "total_thought_tokens": 7022,
+    "total_tokens": 21543,
+    "cost_usd": "0.155133",
+    "cost_usd_carbon_post_promo": null,
+    "status": "completed",
+    "interaction_id": "v1_ChY2bVlHYTZhWERMNk4xZThQc0tDQVVREhY2bVlHYTZhWERMNk4xZThQc0tDQVVR"
+  },
+  "ground_truth": {
+    "effective_data_breach_liability_cap_usd": 1750000.0,
+    "duplicate_invoice_id": "INV-2026-0911",
+    "duplicate_overcharge_usd": 45000.0,
+    "net_eligible_annual_spend_usd": 1120000.0,
+    "missing_volume_rebate_usd": 16000.0,
+    "chart_inflection_event_label_keyword": "Helios",
+    "chart_q3_gross_margin_pct": 74.8,
+    "arrhenius_outlier_run_id": "RUN-05",
+    "activation_energy_kj_per_mol": 62.5
+  },
+  "parsed_output": {
+    "effective_data_breach_liability_cap_usd": 1750000.0,
+    "duplicate_invoice_id": "INV-2026-0911",
+    "duplicate_overcharge_usd": 45000.0,
+    "net_eligible_annual_spend_usd": 1120000.0,
+    "missing_volume_rebate_usd": 16000.0,
+    "chart_inflection_event_label": "Project Helios Cutover (+12.3pp Margin Jump)",
+    "chart_q3_gross_margin_pct": 74.8,
+    "arrhenius_outlier_run_id": "RUN-05",
+    "activation_energy_kj_per_mol": 62.5,
+    "action_items": [
+      "Submit a formal billing dispute and credit request to Apex Cloud Systems Inc. for USD 61,000 total, consisting of a USD 45,000 refund for duplicate Q3 APAC AnalyticsAddOn invoice INV-2026-0911 and a USD 16,000 retroactive Volume Rebate owed under MSA-2026-APEX Section 4.2 (5.0% of the USD 320,000 in Net Eligible Annual Spend of USD 1,120,000 strictly exceeding the USD 800,000 threshold).",
+      "Update the enterprise legal risk register and vendor compliance controls to record the USD 1,750,000 Data Breach indemnification cap under Addendum #2 (executed Oct 14, 2026, overriding Section 9.4's USD 500,000 Base Liability Cap at 3.5x), while auditing post-cutover operational controls from the Q3 Project Helios Cutover (+12.3pp Margin Jump to 74.8% Gross Margin).",
+      "Exclude thermal assay RUN-05 (340.0 K, thermocouple_drift_alert) from production kinetic models, recalibrate or replace the drifting thermocouple before subsequent runs, and lock the validated Arrhenius activation energy of 62.5 kJ/mol derived from nominal runs RUN-01, RUN-02, RUN-03, RUN-04, RUN-06, and RUN-07."
+    ]
+  },
+  "checks": {
+    "legal_addendum_cap": true,
+    "finance_duplicate_id": true,
+    "finance_duplicate_amount": true,
+    "finance_net_spend": true,
+    "finance_rebate_owed": true,
+    "chart_visual_label": true,
+    "chart_q3_margin": true,
+    "science_outlier_id": true,
+    "science_activation_energy_kj": true,
+    "action_items_present": true
+  },
+  "passed_checks": 10,
+  "total_checks": 10,
+  "overall_pass": true,
+  "chart_artifact": "fixtures\\knowledge_pack\\margin_chart.png",
+  "recorded_at_utc": "2026-11-25T04:42:11.116850+00:00"
+}

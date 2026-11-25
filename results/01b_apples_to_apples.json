@@ -1,0 +1,114 @@
+{
+  "module": "01b_apples_to_apples",
+  "title": "Clarified SWE Spec — Matched Thinking-Level Comparison (Neon vs Carbon)",
+  "runs": [
+    {
+      "model": "gemini-4-neon",
+      "thinking_level": "medium",
+      "passed": true,
+      "grade": {
+        "passed": true,
+        "returncode": 0,
+        "stderr_tail": "test_singleflight_dedup_and_shared_flag (test_swe.TestSWE.test_singleflight_dedup_and_shared_flag) ... ok\ntest_singleflight_exception_cleanup_and_parallel_keys (test_swe.TestSWE.test_singleflight_exception_cleanup_and_parallel_keys) ... ok\ntest_token_bucket_deterministic_clock_and_threads (test_swe.TestSWE.test_token_bucket_deterministic_clock_and_threads) ... ok\n\n----------------------------------------------------------------------\nRan 3 tests in 0.160s\n\nOK\n"
+      },
+      "usage": {
+        "model": "gemini-4-neon",
+        "elapsed_sec": 122.618,
+        "initial_input_tokens": 488,
+        "total_input_tokens": 488,
+        "total_cached_tokens": 0,
+        "total_output_tokens": 1261,
+        "total_thought_tokens": 2380,
+        "total_tokens": 4129,
+        "cost_usd": "0.056079",
+        "cost_usd_carbon_post_promo": null,
+        "status": "completed",
+        "interaction_id": "v1_ChdfMmdHYTRlWUE4ZTMxZThQbnQyWDZBcxIXXzJnR2E0ZVlBOGUzMWU4UG50Mlg2QXM"
+      },
+      "output_plus_thought_tokens": 3641
+    },
+    {
+      "model": "gemini-4-carbon",
+      "thinking_level": "medium",
+      "passed": true,
+      "grade": {
+        "passed": true,
+        "returncode": 0,
+        "stderr_tail": "test_singleflight_dedup_and_shared_flag (test_swe.TestSWE.test_singleflight_dedup_and_shared_flag) ... ok\ntest_singleflight_exception_cleanup_and_parallel_keys (test_swe.TestSWE.test_singleflight_exception_cleanup_and_parallel_keys) ... ok\ntest_token_bucket_deterministic_clock_and_threads (test_swe.TestSWE.test_token_bucket_deterministic_clock_and_threads) ... ok\n\n----------------------------------------------------------------------\nRan 3 tests in 0.158s\n\nOK\n"
+      },
+      "usage": {
+        "model": "gemini-4-carbon",
+        "elapsed_sec": 63.574,
+        "initial_input_tokens": 485,
+        "total_input_tokens": 485,
+        "total_cached_tokens": 0,
+        "total_output_tokens": 1289,
+        "total_thought_tokens": 3773,
+        "total_tokens": 5547,
+        "cost_usd": "0.051590",
+        "cost_usd_carbon_post_promo": "0.103180",
+        "status": "completed",
+        "interaction_id": "v1_ChdIV2tHYTdHakJJYjYycm9QNzltSXlBURIXSFdrR2E3R2pCSWI2MnJvUDc5bUl5QVE"
+      },
+      "output_plus_thought_tokens": 5062
+    },
+    {
+      "model": "gemini-4-neon",
+      "thinking_level": "high",
+      "passed": true,
+      "grade": {
+        "passed": true,
+        "returncode": 0,
+        "stderr_tail": "test_singleflight_dedup_and_shared_flag (test_swe.TestSWE.test_singleflight_dedup_and_shared_flag) ... ok\ntest_singleflight_exception_cleanup_and_parallel_keys (test_swe.TestSWE.test_singleflight_exception_cleanup_and_parallel_keys) ... ok\ntest_token_bucket_deterministic_clock_and_threads (test_swe.TestSWE.test_token_bucket_deterministic_clock_and_threads) ... ok\n\n----------------------------------------------------------------------\nRan 3 tests in 0.154s\n\nOK\n"
+      },
+      "usage": {
+        "model": "gemini-4-neon",
+        "elapsed_sec": 53.092,
+        "initial_input_tokens": 488,
+        "total_input_tokens": 488,
+        "total_cached_tokens": 0,
+        "total_output_tokens": 1175,
+        "total_thought_tokens": 5059,
+        "total_tokens": 6722,
+        "cost_usd": "0.094974",
+        "cost_usd_carbon_post_promo": null,
+        "status": "completed",
+        "interaction_id": "v1_ChdYV2tHYTh6V0VfeWs5dE1QekszZDRBMBIXWFdrR2E4eldFX3lrOXRNUHpLM2Q0QTA"
+      },
+      "output_plus_thought_tokens": 6234
+    },
+    {
+      "model": "gemini-4-carbon",
+      "thinking_level": "high",
+      "passed": true,
+      "grade": {
+        "passed": true,
+        "returncode": 0,
+        "stderr_tail": "test_singleflight_dedup_and_shared_flag (test_swe.TestSWE.test_singleflight_dedup_and_shared_flag) ... ok\ntest_singleflight_exception_cleanup_and_parallel_keys (test_swe.TestSWE.test_singleflight_exception_cleanup_and_parallel_keys) ... ok\ntest_token_bucket_deterministic_clock_and_threads (test_swe.TestSWE.test_token_bucket_deterministic_clock_and_threads) ... ok\n\n----------------------------------------------------------------------\nRan 3 tests in 0.146s\n\nOK\n"
+      },
+      "usage": {
+        "model": "gemini-4-carbon",
+        "elapsed_sec": 345.89,
+        "initial_input_tokens": 485,
+        "total_input_tokens": 485,
+        "total_cached_tokens": 0,
+        "total_output_tokens": 1482,
+        "total_thought_tokens": 23058,
+        "total_tokens": 25025,
+        "cost_usd": "0.246370",
+        "cost_usd_carbon_post_promo": "0.492740",
+        "status": "completed",
+        "interaction_id": "v1_ChZrbWtHYTZLM05yNk4xZThQc0tDQVVREhZrbWtHYTZLM05yNk4xZThQc0tDQVVR"
+      },
+      "output_plus_thought_tokens": 24540
+    }
+  ],
+  "matched_comparisons": {
+    "medium_neon_vs_carbon_speedup": 0.52,
+    "medium_neon_vs_carbon_token_ratio": 0.72,
+    "high_neon_vs_carbon_speedup": 6.51,
+    "high_neon_vs_carbon_token_ratio": 0.25
+  },
+  "overall_pass": true,
+  "recorded_at_utc": "2026-11-25T04:58:21.606813+00:00"
+}

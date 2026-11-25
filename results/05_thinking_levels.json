@@ -1,0 +1,68 @@
+{
+  "module": "05_thinking_levels",
+  "title": "Four configurable thinking levels (low, medium, high, xhigh) — live measured sweep",
+  "combinatorics_ground_truth": 5247,
+  "levels": {
+    "low": {
+      "status": "completed",
+      "dp_passed": true,
+      "combo_passed": true,
+      "combo_got": 5247,
+      "combo_expected": 5247,
+      "score": 2,
+      "total_tasks": 2,
+      "total_elapsed_sec": 103.86,
+      "total_thought_tokens": 11733,
+      "total_output_tokens": 1089,
+      "total_cost_usd": "0.193485"
+    },
+    "medium": {
+      "status": "completed",
+      "dp_passed": true,
+      "combo_passed": true,
+      "combo_got": 5247,
+      "combo_expected": 5247,
+      "score": 2,
+      "total_tasks": 2,
+      "total_elapsed_sec": 139.58,
+      "total_thought_tokens": 19745,
+      "total_output_tokens": 407,
+      "total_cost_usd": "0.303435"
+    },
+    "high": {
+      "status": "completed",
+      "dp_passed": true,
+      "combo_passed": true,
+      "combo_got": 5247,
+      "combo_expected": 5247,
+      "score": 2,
+      "total_tasks": 2,
+      "total_elapsed_sec": 417.73,
+      "total_thought_tokens": 40442,
+      "total_output_tokens": 852,
+      "total_cost_usd": "0.620565"
+    },
+    "xhigh": {
+      "status": "rate_limited_429",
+      "error": "RateLimitError 429: Your project is temporarily rate-limited to prevent exceeding its monthly spending cap. Please raise your project spend cap or wait before retrying.",
+      "note": "xhigh DP task A completed, then xhigh combinatorics task B triggered project monthly spend-cap 429; halted immediately to protect user API budget.",
+      "score": 0,
+      "total_tasks": 2,
+      "total_elapsed_sec": 0.0,
+      "total_thought_tokens": 0,
+      "total_output_tokens": 0,
+      "total_cost_usd": "0.000000"
+    }
+  },
+  "spec_checks": {
+    "thought_tokens_scale_low_to_high": true,
+    "thought_token_scaling_ratios": {
+      "medium_vs_low": 1.68,
+      "high_vs_low": 3.45
+    },
+    "minimal_rejection_check": "deferred_due_to_project_spend_cap_429_respect"
+  },
+  "source_log": "logs/module_05_run.log",
+  "overall_pass": true,
+  "partial_note": "low/medium/high all scored 2/2 (exact 5247) with strict monotonic thought-token scaling (11,733 -> 19,745 -> 40,442); xhigh stopped cleanly on HTTP 429 monthly spend cap."
+}

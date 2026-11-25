@@ -1,0 +1,124 @@
+{
+  "module": "07_managed_agents_multimodel",
+  "title": "Antigravity Managed Agent (v1beta) standalone & Neon+Hydrogen multi-model pairing",
+  "part_a_managed_agent_standalone": {
+    "available_and_executed": true,
+    "passed": true,
+    "status": "completed",
+    "environment_id": "6d37025b24116d8cbbb3982164bfa4c2",
+    "polls": 6,
+    "step_count": 13,
+    "ground_truth": {
+      "count": 1229,
+      "sum": 5736396,
+      "sha256": "abeb986c1fe78a2e97cb4ca4df80f0a6a9e6131c65a51000e51f1d20c4d23caf"
+    },
+    "output_excerpt": "I created and executed [calc_primes.py](file:///workspace/calc_primes.py), saved the JSON output to [prime_check.json](file:///workspace/prime_check.json), and read it back.\n\nResults from [prime_check.json](file:///workspace/prime_check.json):\n\n- **count**: `1229`\n- **sum**: `5736396`\n- **sha256**: `abeb986c1fe78a2e97cb4ca4df80f0a6a9e6131c65a51000e51f1d20c4d23caf`",
+    "usage": {
+      "model": "gemini-4-neon",
+      "elapsed_sec": 56.597,
+      "initial_input_tokens": 0,
+      "total_input_tokens": 33369,
+      "total_cached_tokens": 17707,
+      "total_output_tokens": 709,
+      "total_thought_tokens": 697,
+      "total_tokens": 34775,
+      "cost_usd": "0.070732",
+      "cost_usd_carbon_post_promo": null,
+      "status": "completed",
+      "interaction_id": "v1_ChdOV2NHYTZDMkl2WC0xZThQLThXTnlBURIXTldjR2E2QzJJdlgtMWU4UC04V055QVE"
+    }
+  },
+  "part_b_paired_neon_hydrogen": {
+    "turn1_neon_architect": {
+      "model": "gemini-4-neon",
+      "elapsed_sec": 29.702,
+      "initial_input_tokens": 169,
+      "total_input_tokens": 169,
+      "total_cached_tokens": 0,
+      "total_output_tokens": 698,
+      "total_thought_tokens": 3023,
+      "total_tokens": 3890,
+      "cost_usd": "0.056322",
+      "cost_usd_carbon_post_promo": null,
+      "status": "completed",
+      "interaction_id": "v1_ChdZV2NHYTRXWUdfaS0xZThQMjhyQy1RSRIXWVdjR2E0V1lHX2ktMWU4UDI4ckMtUUk"
+    },
+    "turn2_hydrogen_paired": {
+      "grade": {
+        "passed": true,
+        "stderr_tail": "test_batch_transfer_atomicity_and_errors (test_pool.TestPool.test_batch_transfer_atomicity_and_errors) ... ok\ntest_concurrent_bidirectional_no_deadlock_and_conservation (test_pool.TestPool.test_concurrent_bidirectional_no_deadlock_and_conservation) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.018s\n\nOK\n"
+      },
+      "usage": {
+        "model": "gemini-4-hydrogen",
+        "elapsed_sec": 11.717,
+        "initial_input_tokens": 1065,
+        "total_input_tokens": 1065,
+        "total_cached_tokens": 0,
+        "total_output_tokens": 955,
+        "total_thought_tokens": 998,
+        "total_tokens": 3018,
+        "cost_usd": "0.016245",
+        "cost_usd_carbon_post_promo": null,
+        "status": "completed",
+        "interaction_id": "v1_ChdZV2NHYTRXWUdfaS0xZThQMjhyQy1RSRIXZjJjR2E5cUZKOTZCMWU4UHg3WHdvUVE"
+      }
+    },
+    "turn2_neon_solo": {
+      "grade": {
+        "passed": true,
+        "stderr_tail": "test_batch_transfer_atomicity_and_errors (test_pool.TestPool.test_batch_transfer_atomicity_and_errors) ... ok\ntest_concurrent_bidirectional_no_deadlock_and_conservation (test_pool.TestPool.test_concurrent_bidirectional_no_deadlock_and_conservation) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.027s\n\nOK\n"
+      },
+      "usage": {
+        "model": "gemini-4-neon",
+        "elapsed_sec": 30.179,
+        "initial_input_tokens": 4095,
+        "total_input_tokens": 4095,
+        "total_cached_tokens": 0,
+        "total_output_tokens": 1026,
+        "total_thought_tokens": 2479,
+        "total_tokens": 7600,
+        "cost_usd": "0.064860",
+        "cost_usd_carbon_post_promo": null,
+        "status": "completed",
+        "interaction_id": "v1_ChdZV2NHYTRXWUdfaS0xZThQMjhyQy1RSRIXaTJjR2E5X2NPX1gtMWU4UC04V055QVE"
+      }
+    },
+    "paired_total_cost_usd": "0.072567",
+    "solo_total_cost_usd": "0.121182",
+    "paired_cost_savings_pct": 40.1,
+    "paired_turn2_speedup_ratio": 2.58,
+    "passed": true
+  },
+  "part_c_custom_agent_templates": {
+    "neon_architect_agent": {
+      "id": "neon-repo-architect",
+      "base_agent": "antigravity-preview-09-2026",
+      "agent_config": {
+        "type": "antigravity",
+        "model": "gemini-4-neon"
+      },
+      "note": "Model is locked at agents.create time; cannot be overridden at interaction time."
+    },
+    "hydrogen_worker_agent": {
+      "id": "hydrogen-test-worker",
+      "base_agent": "antigravity-preview-09-2026",
+      "agent_config": {
+        "type": "antigravity",
+        "model": "gemini-4-hydrogen"
+      },
+      "note": "Default Antigravity Managed Agent model for fast parallel execution."
+    }
+  },
+  "cost_summary": {
+    "calls": 4,
+    "total_elapsed_sec": 128.195,
+    "total_input_tokens": 38698,
+    "total_cached_tokens": 17707,
+    "total_output_tokens": 3388,
+    "total_thought_tokens": 7197,
+    "total_cost_usd": "0.208159"
+  },
+  "overall_pass": true,
+  "recorded_at_utc": "2026-11-25T04:44:26.787565+00:00"
+}

@@ -1,0 +1,126 @@
+{
+  "module": "06_unified_1m_long_decode",
+  "title": "Unified 1M context window, Long Decode (background & client-side) & Implicit Caching",
+  "part_a_budget_and_multihop_sim": {
+    "budget_long_decode_262k": {
+      "unified_limit": 1048576,
+      "input_tokens": 200000,
+      "effective_output_cap": 262144,
+      "remaining_window_for_output_and_thinking": 848576,
+      "long_decode_enabled": true,
+      "warnings": []
+    },
+    "budget_low_cap_warning": {
+      "unified_limit": 1048576,
+      "input_tokens": 10000,
+      "effective_output_cap": 8192,
+      "remaining_window_for_output_and_thinking": 1038576,
+      "long_decode_enabled": false,
+      "warnings": [
+        "Hardcoded max_output_tokens < 32,768 risks cutting off thinking before final answer."
+      ]
+    },
+    "multihop_continuation_unit_test": {
+      "passed": true,
+      "hops_chained": 3,
+      "assembled_text": "[HOP1:Architecture][HOP2:Implementation][HOP3:Verification]",
+      "cumulative_billed_input_tokens_do_not_use_for_compaction": 556608,
+      "true_final_context_occupancy_tokens": 269572
+    }
+  },
+  "part_b_background_long_decode": {
+    "passed": true,
+    "poll_count": 9,
+    "status_transitions": [
+      "in_progress",
+      "in_progress",
+      "in_progress",
+      "in_progress",
+      "in_progress",
+      "in_progress",
+      "in_progress",
+      "in_progress",
+      "in_progress",
+      "completed"
+    ],
+    "output_chars": 6243,
+    "usage": {
+      "model": "gemini-4-neon",
+      "elapsed_sec": 38.962,
+      "initial_input_tokens": 0,
+      "total_input_tokens": 93,
+      "total_cached_tokens": 0,
+      "total_output_tokens": 1572,
+      "total_thought_tokens": 1486,
+      "total_tokens": 3151,
+      "cost_usd": "0.046149",
+      "cost_usd_carbon_post_promo": null,
+      "status": "completed",
+      "interaction_id": "v1_ChdIV2NHYTdiQ0o0dS0xZThQb182UDZBZxIXSFdjR2E3YkNKNHUtMWU4UG9fNlA2QWc"
+    }
+  },
+  "part_c_client_side_continuation": {
+    "passed": true,
+    "hops_executed": 1,
+    "output_chars": 3443,
+    "usage": {
+      "model": "gemini-4-neon",
+      "elapsed_sec": 18.288,
+      "initial_input_tokens": 70,
+      "total_input_tokens": 70,
+      "total_cached_tokens": 0,
+      "total_output_tokens": 852,
+      "total_thought_tokens": 1022,
+      "total_tokens": 1944,
+      "cost_usd": "0.028320",
+      "cost_usd_carbon_post_promo": null,
+      "status": "completed",
+      "interaction_id": "v1_ChdRV2NHYTRDR0w4SDcycm9QOWEzaDZBbxIXUVdjR2E0Q0dMOEg3MnJvUDlhM2g2QW8"
+    }
+  },
+  "part_d_implicit_caching": {
+    "call1_needle_ok": true,
+    "call2_needle_ok": true,
+    "call1_usage": {
+      "model": "gemini-4-neon",
+      "elapsed_sec": 5.371,
+      "initial_input_tokens": 13188,
+      "total_input_tokens": 13188,
+      "total_cached_tokens": 0,
+      "total_output_tokens": 11,
+      "total_thought_tokens": 159,
+      "total_tokens": 13358,
+      "cost_usd": "0.042114",
+      "cost_usd_carbon_post_promo": null,
+      "status": "completed",
+      "interaction_id": "v1_ChZWR2NHYV9qVkU3LVp2cjBQNHFieUdBEhZWR2NHYV9qVkU3LVp2cjBQNHFieUdB"
+    },
+    "call2_usage": {
+      "model": "gemini-4-neon",
+      "elapsed_sec": 5.546,
+      "initial_input_tokens": 13192,
+      "total_input_tokens": 13192,
+      "total_cached_tokens": 0,
+      "total_output_tokens": 5,
+      "total_thought_tokens": 165,
+      "total_tokens": 13362,
+      "cost_usd": "0.042126",
+      "cost_usd_carbon_post_promo": null,
+      "status": "completed",
+      "interaction_id": "v1_ChdXV2NHYTVDX0g5Q3oycm9QbUxUNThBOBIXV1djR2E1Q19IOUN6MnJvUG1MVDU4QTg"
+    },
+    "call2_cache_hit_ratio": 0.0,
+    "call2_savings_usd": "0.000000"
+  },
+  "cost_summary": {
+    "calls": 4,
+    "total_elapsed_sec": 68.167,
+    "total_input_tokens": 26543,
+    "total_cached_tokens": 0,
+    "total_output_tokens": 2440,
+    "total_thought_tokens": 2832,
+    "total_cost_usd": "0.158709"
+  },
+  "overall_pass": true,
+  "recorded_at_utc": "2026-11-25T04:43:11.369554+00:00"
+}

@@ -1,0 +1,8 @@
+run_id,temp_kelvin,rate_constant_k_s_inv,sensor_status
+RUN-01,300.0,1.57462468e-02,nominal
+RUN-02,310.0,3.53353541e-02,nominal
+RUN-03,320.0,7.53880163e-02,nominal
+RUN-04,330.0,1.53620850e-01,nominal
+RUN-05,340.0,1.50000000e-04,thermocouple_drift_alert
+RUN-06,350.0,5.64610670e-01,nominal
+RUN-07,360.0,1.02528456e+00,nominal
