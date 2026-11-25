@@ -46,12 +46,13 @@ Write a self-contained Python 3 module (standard library only) implementing TWO 
 
 2. `TokenBucketLimiter`:
    - `__init__(self, capacity: float, refill_rate: float, clock: Callable[[], float] = time.monotonic)`
+     - `capacity` must be `> 0`; `refill_rate` must be `>= 0.0` (`0.0` is valid and represents a fixed non-refilling quota).
    - Thread-safe method `allow(self, tokens: float = 1.0) -> bool`:
      - Refills tokens smoothly based on elapsed time from `clock()`, capped at `capacity`.
      - Raises `ValueError` if `tokens <= 0` or `tokens > capacity`.
      - Atomically consumes `tokens` and returns `True` if available, else consumes 0 and returns `False`.
    - Method `time_until_available(self, tokens: float = 1.0) -> float`:
-     - Returns `0.0` if `tokens` can be granted immediately, else exact seconds needed until available (non-negative).
+     - Returns `0.0` if `tokens` can be granted immediately, `math.inf` if `refill_rate == 0.0` and tokens are insufficient, else exact seconds needed until available (non-negative).
 
 Return ONLY a single ```python ... ``` code block using the Python standard library.
 """).strip()
@@ -292,17 +293,33 @@ def grade_science(text: str) -> dict[str, Any]:
     return {"passed": all_ok, "checks": checks}
 
 
-def run_benchmark() -> dict[str, Any]:
-    print("=== [Module 1] Frontier Intelligence, Fast E2E & Cost Efficiency ($3/$15) ===")
-    client = get_client()
+def run_benchmark(rerun_swe_only: bool = False) -> dict[str, Any]:
+    from bench_core import RESULTS_DIR
+
+    print(f"=== [Module 1] Frontier Intelligence, Fast E2E & Cost Efficiency ($3/$15, rerun_swe_only={rerun_swe_only}) ===")
+    client = get_client(timeout_sec=240.0)
     tasks = [
         ("swe_singleflight_ratelimiter", TASK_SWE_PROMPT, grade_swe, True),
         ("finance_asc606", TASK_FINANCE_PROMPT, grade_finance, False),
         ("science_kinetics", TASK_SCIENCE_PROMPT, grade_science, False),
     ]
 
+    existing_path = RESULTS_DIR / "01_frontier_speed_cost.json"
+    existing_data = json.loads(existing_path.read_text(encoding="utf-8")) if (rerun_swe_only and existing_path.exists()) else None
+    v1_history = None
+    if existing_data:
+        v1_history = {
+            "note": "Initial run before clarifying refill_rate >= 0.0 in TASK_SWE_PROMPT; Neon and Carbon defensively raised ValueError on refill_rate=0.0.",
+            "initial_pass_counts": {m: v["passed"] for m, v in existing_data["models"].items()},
+        }
+
     results_by_model: dict[str, Any] = {}
     for model, thinking_level in MODELS_TO_COMPARE:
+        if existing_data and model == "gemini-4-hydrogen":
+            results_by_model[model] = existing_data["models"][model]
+            print(f"\n-> Keeping verified {model} (3/3 already passed)")
+            continue
+
         print(f"\n-> Testing {model} (thinking_level={thinking_level})...")
         model_tasks = []
         passed_count = 0
@@ -311,25 +328,55 @@ def run_benchmark() -> dict[str, Any]:
         total_cost = Decimal("0")
         total_cost_post_promo = Decimal("0")
 
+        existing_task_map = (
+            {t["task"]: t for t in existing_data["models"][model]["tasks"]}
+            if (existing_data and model in existing_data.get("models", {}))
+            else {}
+        )
+
         for task_name, prompt, grader, is_code in tasks:
+            if rerun_swe_only and task_name != "swe_singleflight_ratelimiter" and task_name in existing_task_map:
+                prev_t = existing_task_map[task_name]
+                ok = bool(prev_t["grade"].get("passed"))
+                u_dict = prev_t["usage"]
+                elapsed = float(u_dict["elapsed_sec"])
+                if ok:
+                    passed_count += 1
+                total_elapsed += elapsed
+                total_out_and_thought += int(u_dict["total_output_tokens"]) + int(u_dict["total_thought_tokens"])
+                total_cost += Decimal(str(u_dict["cost_usd"]))
+                if u_dict.get("cost_usd_carbon_post_promo"):
+                    total_cost_post_promo += Decimal(str(u_dict["cost_usd_carbon_post_promo"]))
+                model_tasks.append(prev_t)
+                print(f"   [{task_name}] reused verified pass={ok} | time={elapsed:.2f}s | cost=${u_dict['cost_usd']}")
+                continue
+
             t0 = time.perf_counter()
-            try:
-                interaction = client.interactions.create(
-                    model=model,
-                    input=prompt,
-                    generation_config={
-                        "thinking_level": thinking_level,
-                        "max_output_tokens": 32768,
-                    },
-                )
-                elapsed = time.perf_counter() - t0
-                usage = extract_usage(model, interaction, elapsed)
-                text = extract_all_model_text(interaction)
-                grade = grader(extract_python_code(text) if is_code else text)
-            except Exception as exc:
-                elapsed = time.perf_counter() - t0
-                usage = None
-                grade = {"passed": False, "error": f"{type(exc).__name__}: {exc}"}
+            usage = None
+            grade: dict[str, Any] = {"passed": False, "error": "uninitialized"}
+            for attempt in range(1, 3):
+                t0 = time.perf_counter()
+                try:
+                    interaction = client.interactions.create(
+                        model=model,
+                        input=prompt,
+                        generation_config={
+                            "thinking_level": thinking_level,
+                            "max_output_tokens": 32768,
+                        },
+                    )
+                    elapsed = time.perf_counter() - t0
+                    usage = extract_usage(model, interaction, elapsed)
+                    text = extract_all_model_text(interaction)
+                    grade = grader(extract_python_code(text) if is_code else text)
+                    break
+                except Exception as exc:
+                    elapsed = time.perf_counter() - t0
+                    usage = None
+                    grade = {"passed": False, "error": f"{type(exc).__name__}: {exc}"}
+                    print(f"   [{task_name}] attempt {attempt} error ({type(exc).__name__}: {exc}) after {elapsed:.1f}s")
+                    if attempt < 2:
+                        time.sleep(3)
 
             ok = bool(grade.get("passed"))
             if ok:
@@ -386,7 +433,8 @@ def run_benchmark() -> dict[str, Any]:
                 else None
             ),
         },
-        "overall_pass": neon["passed"] == len(tasks),
+        "v1_ambiguous_spec_history": v1_history,
+        "overall_pass": all(results_by_model[m]["passed"] == len(tasks) for m in results_by_model),
     }
     path = save_result("01_frontier_speed_cost", summary)
     print(f"\nSaved Module 1 results to {path}")
@@ -394,4 +442,8 @@ def run_benchmark() -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    run_benchmark()
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--rerun-swe", action="store_true", help="Re-run only clarified SWE task for Neon and Carbon")
+    cli = ap.parse_args()
+    run_benchmark(rerun_swe_only=cli.rerun_swe)

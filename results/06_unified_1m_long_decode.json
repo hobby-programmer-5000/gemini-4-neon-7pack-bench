@@ -1,6 +1,6 @@
 {
   "module": "06_unified_1m_long_decode",
-  "title": "Unified 1M context window, Long Decode (background & client-side) & Implicit Caching",
+  "title": "Unified 1M context window, Live >64K Multi-Hop Long Decode & 3-Mode Implicit Caching",
   "part_a_budget_and_multihop_sim": {
     "budget_long_decode_262k": {
       "unified_limit": 1048576,
@@ -78,49 +78,422 @@
       "interaction_id": "v1_ChdRV2NHYTRDR0w4SDcycm9QOWEzaDZBbxIXUVdjR2E0Q0dMOEg3MnJvUDlhM2g2QW8"
     }
   },
-  "part_d_implicit_caching": {
-    "call1_needle_ok": true,
-    "call2_needle_ok": true,
-    "call1_usage": {
-      "model": "gemini-4-neon",
-      "elapsed_sec": 5.371,
-      "initial_input_tokens": 13188,
-      "total_input_tokens": 13188,
-      "total_cached_tokens": 0,
-      "total_output_tokens": 11,
-      "total_thought_tokens": 159,
-      "total_tokens": 13358,
-      "cost_usd": "0.042114",
-      "cost_usd_carbon_post_promo": null,
+  "part_d_implicit_caching_matrix": {
+    "finding_summary": "Empirical 4-condition implicit caching matrix on gemini-4-neon (~17.8K-22.2K shared prefix): (1) interactions.create(store=False) stateless: 0.0% across 4 calls; (2) interactions.create(store=True) stateless without previous_interaction_id: 0.0% across 2 calls (matching interactions-overview.md Limitations: server-side implicit caching in Interactions API requires previous_interaction_id); (3) interactions.create(previous_interaction_id=...) stateful: 87.5% -> 87.8% deterministic hits (15,804/18,069 and 16,020/18,245); (4) models.generate_content() stateless: 88.5% stateless hit (15,804/17,861, uncached tail 2,057 tokens matching caching.md's 2,050-token tail rule; best-effort replica routing across subsequent calls).",
+    "all_needles_ok": true,
+    "cache_hit_observed": true,
+    "stateless_generate_content_peak_hit_ratio": 0.8848,
+    "stateful_interactions_peak_hit_ratio": 0.878,
+    "stateless_interactions_peak_hit_ratio": 0.0,
+    "total_cache_savings_usd": "0.135739",
+    "interactions_store_false_stateless_4calls": [
+      {
+        "call_index": 1,
+        "needle_ok": true,
+        "cache_hit_ratio": 0.0,
+        "saved_usd": "0.000000",
+        "usage": {
+          "model": "gemini-4-neon",
+          "elapsed_sec": 5.339,
+          "initial_input_tokens": 22180,
+          "total_input_tokens": 22180,
+          "total_cached_tokens": 0,
+          "total_output_tokens": 11,
+          "total_thought_tokens": 162,
+          "total_tokens": 22353,
+          "cost_usd": "0.069135",
+          "cost_usd_carbon_post_promo": null,
+          "status": "completed",
+          "interaction_id": ""
+        }
+      },
+      {
+        "call_index": 2,
+        "needle_ok": true,
+        "cache_hit_ratio": 0.0,
+        "saved_usd": "0.000000",
+        "usage": {
+          "model": "gemini-4-neon",
+          "elapsed_sec": 4.743,
+          "initial_input_tokens": 22184,
+          "total_input_tokens": 22184,
+          "total_cached_tokens": 0,
+          "total_output_tokens": 5,
+          "total_thought_tokens": 182,
+          "total_tokens": 22371,
+          "cost_usd": "0.069357",
+          "cost_usd_carbon_post_promo": null,
+          "status": "completed",
+          "interaction_id": ""
+        }
+      },
+      {
+        "call_index": 3,
+        "needle_ok": true,
+        "cache_hit_ratio": 0.0,
+        "saved_usd": "0.000000",
+        "usage": {
+          "model": "gemini-4-neon",
+          "elapsed_sec": 4.728,
+          "initial_input_tokens": 22180,
+          "total_input_tokens": 22180,
+          "total_cached_tokens": 0,
+          "total_output_tokens": 9,
+          "total_thought_tokens": 159,
+          "total_tokens": 22348,
+          "cost_usd": "0.069060",
+          "cost_usd_carbon_post_promo": null,
+          "status": "completed",
+          "interaction_id": ""
+        }
+      },
+      {
+        "call_index": 4,
+        "needle_ok": true,
+        "cache_hit_ratio": 0.0,
+        "saved_usd": "0.000000",
+        "usage": {
+          "model": "gemini-4-neon",
+          "elapsed_sec": 4.449,
+          "initial_input_tokens": 22182,
+          "total_input_tokens": 22182,
+          "total_cached_tokens": 0,
+          "total_output_tokens": 2,
+          "total_thought_tokens": 186,
+          "total_tokens": 22370,
+          "cost_usd": "0.069366",
+          "cost_usd_carbon_post_promo": null,
+          "status": "completed",
+          "interaction_id": ""
+        }
+      }
+    ],
+    "interactions_store_true_stateless_no_prev_id": [
+      {
+        "call": 1,
+        "needle_ok": true,
+        "answer": "NEON-STATELESS-9941",
+        "cache_hit_ratio": 0.0,
+        "saved_usd": "0.000000",
+        "usage": {
+          "model": "gemini-4-neon",
+          "elapsed_sec": 6.669,
+          "initial_input_tokens": 17861,
+          "total_input_tokens": 17861,
+          "total_cached_tokens": 0,
+          "total_output_tokens": 11,
+          "total_thought_tokens": 158,
+          "total_tokens": 18030,
+          "cost_usd": "0.056118",
+          "cost_usd_carbon_post_promo": null,
+          "status": "completed",
+          "interaction_id": "v1_ChdwWTRHYTZXTEZhWGYycm9QNGNUZC1RWRIXcFk0R2E2V0xGYVhmMnJvUDRjVGQtUVk"
+        }
+      },
+      {
+        "call": 2,
+        "needle_ok": true,
+        "answer": "142",
+        "cache_hit_ratio": 0.0,
+        "saved_usd": "0.000000",
+        "usage": {
+          "model": "gemini-4-neon",
+          "elapsed_sec": 5.712,
+          "initial_input_tokens": 17866,
+          "total_input_tokens": 17866,
+          "total_cached_tokens": 0,
+          "total_output_tokens": 4,
+          "total_thought_tokens": 168,
+          "total_tokens": 18038,
+          "cost_usd": "0.056178",
+          "cost_usd_carbon_post_promo": null,
+          "status": "completed",
+          "interaction_id": "v1_ChdxbzRHYTVPNlBJdS0xZThQb182UDZBZxIXcW80R2E1TzZQSXUtMWU4UG9fNlA2QWc"
+        }
+      }
+    ],
+    "interactions_stateful_with_prev_id": [
+      {
+        "call": 1,
+        "needle_ok": true,
+        "answer": "region-3",
+        "cache_hit_ratio": 0.8746,
+        "saved_usd": "0.045041",
+        "usage": {
+          "model": "gemini-4-neon",
+          "elapsed_sec": 6.345,
+          "initial_input_tokens": 18069,
+          "total_input_tokens": 18069,
+          "total_cached_tokens": 15804,
+          "total_output_tokens": 4,
+          "total_thought_tokens": 143,
+          "total_tokens": 18216,
+          "cost_usd": "0.011371",
+          "cost_usd_carbon_post_promo": null,
+          "status": "completed",
+          "interaction_id": "v1_ChdwWTRHYTZXTEZhWGYycm9QNGNUZC1RWRIXc1k0R2E1SHhBcFRiOXRNUDB1RDRtQVk"
+        }
+      },
+      {
+        "call": 2,
+        "needle_ok": true,
+        "answer": "NEON-STATEFUL-7712",
+        "cache_hit_ratio": 0.878,
+        "saved_usd": "0.045657",
+        "usage": {
+          "model": "gemini-4-neon",
+          "elapsed_sec": 13.271,
+          "initial_input_tokens": 18245,
+          "total_input_tokens": 18245,
+          "total_cached_tokens": 16020,
+          "total_output_tokens": 11,
+          "total_thought_tokens": 151,
+          "total_tokens": 18407,
+          "cost_usd": "0.011508",
+          "cost_usd_carbon_post_promo": null,
+          "status": "completed",
+          "interaction_id": "v1_ChdwWTRHYTZXTEZhWGYycm9QNGNUZC1RWRIXdDQ0R2E5YTVHZDYzMWU4UDY1amUtUUk"
+        }
+      }
+    ],
+    "generate_content_stateless": [
+      {
+        "call": 1,
+        "needle_ok": true,
+        "answer": "NEON-STATELESS-9941",
+        "cache_hit_ratio": 0.8848,
+        "uncached_tail_tokens": 2057,
+        "saved_usd": "0.045041",
+        "usage": {
+          "model": "gemini-4-neon",
+          "elapsed_sec": 26.284,
+          "initial_input_tokens": 17861,
+          "total_input_tokens": 17861,
+          "total_cached_tokens": 15804,
+          "total_output_tokens": 11,
+          "total_thought_tokens": 164,
+          "total_tokens": 18036,
+          "cost_usd": "0.011167",
+          "cost_usd_carbon_post_promo": null,
+          "status": "completed",
+          "interaction_id": null
+        }
+      },
+      {
+        "call": 2,
+        "needle_ok": true,
+        "answer": "142",
+        "cache_hit_ratio": 0.0,
+        "uncached_tail_tokens": 17866,
+        "saved_usd": "0.000000",
+        "usage": {
+          "model": "gemini-4-neon",
+          "elapsed_sec": 4.777,
+          "initial_input_tokens": 17866,
+          "total_input_tokens": 17866,
+          "total_cached_tokens": 0,
+          "total_output_tokens": 4,
+          "total_thought_tokens": 168,
+          "total_tokens": 18038,
+          "cost_usd": "0.056178",
+          "cost_usd_carbon_post_promo": null,
+          "status": "completed",
+          "interaction_id": null
+        }
+      },
+      {
+        "call": 3,
+        "needle_ok": true,
+        "answer": "NEON-STATEFUL-7712",
+        "cache_hit_ratio": 0.0,
+        "uncached_tail_tokens": 17861,
+        "saved_usd": "0.000000",
+        "usage": {
+          "model": "gemini-4-neon",
+          "elapsed_sec": 5.378,
+          "initial_input_tokens": 17861,
+          "total_input_tokens": 17861,
+          "total_cached_tokens": 0,
+          "total_output_tokens": 11,
+          "total_thought_tokens": 154,
+          "total_tokens": 18026,
+          "cost_usd": "0.056058",
+          "cost_usd_carbon_post_promo": null,
+          "status": "completed",
+          "interaction_id": null
+        }
+      }
+    ]
+  },
+  "part_e_live_over_64k_multihop": {
+    "passed": true,
+    "server_side_background_134k": {
+      "passed": true,
+      "mode": "background_server_side_multihop",
+      "interaction_id": "v1_Chcyb3NHYS15NUZMS052cjBQdXNpSWlRTRIXMm9zR2EteTVGTEtOdnIwUHVzaUlpUU0",
       "status": "completed",
-      "interaction_id": "v1_ChZWR2NHYV9qVkU3LVp2cjBQNHFieUdBEhZWR2NHYV9qVkU3LVp2cjBQNHFieUdB"
+      "created_utc": "2026-11-25T07:44:55Z",
+      "updated_utc": "2026-11-25T07:44:55Z",
+      "server_elapsed_sec": 1596.0,
+      "original_prompt_tokens": 369,
+      "combined_output_plus_thought_tokens": 134742,
+      "crossed_65536_single_hop_wall": true,
+      "single_hop_wall_multiplier": 2.06,
+      "multihop_cumulative_input_tokens": 360965,
+      "multihop_cumulative_input_gt_65536": true,
+      "input_inflation_vs_original_prompt": 978.2,
+      "true_final_context_occupancy_tokens": 135111,
+      "total_steps": 7,
+      "model_output_step_count": 3,
+      "steps_breakdown": [
+        {
+          "step_index": 0,
+          "type": "user_input",
+          "content_types": [
+            "text"
+          ],
+          "text_chars": 1383
+        },
+        {
+          "step_index": 1,
+          "type": "thought",
+          "content_types": [],
+          "text_chars": 0
+        },
+        {
+          "step_index": 2,
+          "type": "model_output",
+          "content_types": [
+            "text"
+          ],
+          "text_chars": 11434
+        },
+        {
+          "step_index": 3,
+          "type": "thought",
+          "content_types": [],
+          "text_chars": 0
+        },
+        {
+          "step_index": 4,
+          "type": "model_output",
+          "content_types": [
+            "text"
+          ],
+          "text_chars": 9015
+        },
+        {
+          "step_index": 5,
+          "type": "thought",
+          "content_types": [],
+          "text_chars": 0
+        },
+        {
+          "step_index": 6,
+          "type": "model_output",
+          "content_types": [
+            "text"
+          ],
+          "text_chars": 99774
+        }
+      ],
+      "output_chars": 120223,
+      "combinatorics_ground_truth": 173801,
+      "combinatorics_extracted_answer": "173801",
+      "combinatorics_exact_match": true,
+      "usage": {
+        "model": "gemini-4-neon",
+        "elapsed_sec": 1596.0,
+        "initial_input_tokens": 0,
+        "total_input_tokens": 360965,
+        "total_cached_tokens": 0,
+        "total_output_tokens": 41928,
+        "total_thought_tokens": 92814,
+        "total_tokens": 495707,
+        "cost_usd": "3.104025",
+        "cost_usd_carbon_post_promo": null,
+        "status": "completed",
+        "interaction_id": "v1_Chcyb3NHYS15NUZMS052cjBQdXNpSWlRTRIXMm9zR2EteTVGTEtOdnIwUHVzaUlpUU0"
+      },
+      "elapsed_note": "Submitted ~2026-11-25T07:18:19Z, server updated_utc=2026-11-25T07:44:55Z (~1,596s wall-clock; completed ~3 min after 240-poll 1,369.8s client window)."
     },
-    "call2_usage": {
-      "model": "gemini-4-neon",
-      "elapsed_sec": 5.546,
-      "initial_input_tokens": 13192,
-      "total_input_tokens": 13192,
-      "total_cached_tokens": 0,
-      "total_output_tokens": 5,
-      "total_thought_tokens": 165,
-      "total_tokens": 13362,
-      "cost_usd": "0.042126",
-      "cost_usd_carbon_post_promo": null,
-      "status": "completed",
-      "interaction_id": "v1_ChdXV2NHYTVDX0g5Q3oycm9QbUxUNThBOBIXV1djR2E1Q19IOUN6MnJvUG1MVDU4QTg"
-    },
-    "call2_cache_hit_ratio": 0.0,
-    "call2_savings_usd": "0.000000"
+    "client_side_continuation_84k": {
+      "passed": true,
+      "mode": "client_side_continuation_live_multihop",
+      "target_records": 700,
+      "calibrated_tokens_per_line": 120.7,
+      "hops_executed": 2,
+      "final_status": "completed",
+      "hop1_requires_continuation": true,
+      "combined_output_tokens": 83425,
+      "combined_thought_tokens": 353,
+      "combined_output_plus_thought_tokens": 83778,
+      "crossed_65536_single_hop_wall": true,
+      "hop2_input_gt_65536": true,
+      "hop2_cached_tokens_gt_0": false,
+      "assembled_chars": 266589,
+      "valid_ndjson_records": 700,
+      "invalid_ndjson_lines": 0,
+      "first_seq": 1,
+      "last_seq": 700,
+      "seam_clean_stitch": true,
+      "total_elapsed_sec": 532.239,
+      "total_cost_usd": "1.458036",
+      "hops": [
+        {
+          "hop": 1,
+          "status": "requires_continuation",
+          "has_continuation_token": true,
+          "continuation_token_len": 279352,
+          "chunk_chars": 208325,
+          "usage": {
+            "model": "gemini-4-neon",
+            "elapsed_sec": 415.151,
+            "initial_input_tokens": 793,
+            "total_input_tokens": 793,
+            "total_cached_tokens": 0,
+            "total_output_tokens": 65183,
+            "total_thought_tokens": 353,
+            "total_tokens": 66329,
+            "cost_usd": "0.985419",
+            "cost_usd_carbon_post_promo": null,
+            "status": "requires_continuation",
+            "interaction_id": "v1_ChdINUlHYTluYU9QckExZThQOXVqa2lRaxIXSDVJR2E5bmFPUHJBMWU4UDl1amtpUWs"
+          }
+        },
+        {
+          "hop": 2,
+          "status": "completed",
+          "has_continuation_token": false,
+          "continuation_token_len": 0,
+          "chunk_chars": 58264,
+          "usage": {
+            "model": "gemini-4-neon",
+            "elapsed_sec": 117.088,
+            "initial_input_tokens": 793,
+            "total_input_tokens": 66329,
+            "total_cached_tokens": 0,
+            "total_output_tokens": 18242,
+            "total_thought_tokens": 0,
+            "total_tokens": 84571,
+            "cost_usd": "0.472617",
+            "cost_usd_carbon_post_promo": null,
+            "status": "completed",
+            "interaction_id": "v1_ChdINUlHYTluYU9QckExZThQOXVqa2lRaxIXdjVNR2E4bURCZkt0MWU4UDA4N3RrUWM"
+          }
+        }
+      ]
+    }
   },
   "cost_summary": {
-    "calls": 4,
-    "total_elapsed_sec": 68.167,
-    "total_input_tokens": 26543,
-    "total_cached_tokens": 0,
-    "total_output_tokens": 2440,
-    "total_thought_tokens": 2832,
-    "total_cost_usd": "0.158709"
+    "calls": 16,
+    "total_elapsed_sec": 2273.184,
+    "total_input_tokens": 642605,
+    "total_cached_tokens": 47628,
+    "total_output_tokens": 127860,
+    "total_thought_tokens": 97470,
+    "total_cost_usd": "5.172026"
   },
   "overall_pass": true,
-  "recorded_at_utc": "2026-11-25T04:43:11.369554+00:00"
+  "recorded_at_utc": "2026-11-25T07:56:16.173196+00:00"
 }

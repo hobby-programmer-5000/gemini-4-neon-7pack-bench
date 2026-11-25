@@ -1,11 +1,11 @@
-"""Remediated local sandbox service with root-cause security fixes."""
+"""Defensive root-cause patched service module."""
 from __future__ import annotations
 
 import ast
+import contextlib
 import hashlib
 import hmac
 import operator
-import os
 import sqlite3
 import time
 from pathlib import Path
@@ -17,17 +17,17 @@ _BIN_OPS = {
     ast.Mult: operator.mul,
     ast.Div: operator.truediv,
 }
+
 _UNARY_OPS = {
     ast.UAdd: operator.pos,
     ast.USub: operator.neg,
 }
-_HEX_CHARS = frozenset("0123456789abcdefABCDEF")
 
 
 class VulnerableService:
     def __init__(self, db_path: str, export_root: str, webhook_secret: bytes) -> None:
         self.db_path = db_path
-        self.export_root = os.path.abspath(export_root)
+        self.export_root = str(Path(export_root).resolve())
         self.webhook_secret = webhook_secret
         self._init_db()
 
@@ -38,29 +38,29 @@ class VulnerableService:
         return conn
 
     def _init_db(self) -> None:
-        with self._connect() as conn:
-            conn.execute(
-                """
-                CREATE TABLE IF NOT EXISTS users (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    username TEXT UNIQUE NOT NULL,
-                    role TEXT NOT NULL,
-                    balance INTEGER NOT NULL DEFAULT 0
+        with contextlib.closing(self._connect()) as conn:
+            with conn:
+                conn.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS users (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        username TEXT UNIQUE NOT NULL,
+                        role TEXT NOT NULL,
+                        balance INTEGER NOT NULL DEFAULT 0
+                    )
+                    """
                 )
-                """
-            )
-            conn.commit()
 
     def add_user(self, username: str, role: str, balance: int) -> None:
-        with self._connect() as conn:
-            conn.execute(
-                "INSERT INTO users(username, role, balance) VALUES (?, ?, ?)",
-                (username, role, balance),
-            )
-            conn.commit()
+        with contextlib.closing(self._connect()) as conn:
+            with conn:
+                conn.execute(
+                    "INSERT INTO users(username, role, balance) VALUES (?, ?, ?)",
+                    (username, role, balance),
+                )
 
     def search_users(self, username_query: str) -> list[dict[str, Any]]:
-        with self._connect() as conn:
+        with contextlib.closing(self._connect()) as conn:
             rows = conn.execute(
                 "SELECT id, username, role, balance FROM users WHERE username = ?",
                 (username_query,),
@@ -68,21 +68,22 @@ class VulnerableService:
             return [dict(r) for r in rows]
 
     def read_export_file(self, filename: str) -> str:
-        if not isinstance(filename, str) or "\x00" in filename:
-            raise PermissionError("Invalid filename")
         root = Path(self.export_root).resolve()
         candidate = (root / filename).resolve()
-        if not candidate.is_relative_to(root) or candidate == root:
+        if candidate == root or not candidate.is_relative_to(root):
             raise PermissionError("Path outside export root")
         return candidate.read_text(encoding="utf-8")
 
     def verify_webhook_sig(self, payload: bytes, provided_sig: str) -> bool:
-        if not isinstance(provided_sig, str):
-            return False
         expected = hmac.new(self.webhook_secret, payload, hashlib.sha256).hexdigest()
-        if len(provided_sig) != len(expected) or not all(c in _HEX_CHARS for c in provided_sig):
+        if not isinstance(provided_sig, str) or len(provided_sig) != len(expected):
             return False
-        return hmac.compare_digest(expected, provided_sig.lower())
+        try:
+            expected_bytes = expected.encode("ascii")
+            provided_bytes = provided_sig.encode("ascii")
+        except UnicodeEncodeError:
+            return False
+        return hmac.compare_digest(expected_bytes, provided_bytes)
 
     def evaluate_pricing_formula(self, formula: str, variables: dict[str, float]) -> float:
         if not isinstance(formula, str):
@@ -104,49 +105,54 @@ class VulnerableService:
                     raise ValueError(f"Unknown variable: {node.id}")
                 val = variables[node.id]
                 if isinstance(val, bool) or not isinstance(val, (int, float)):
-                    raise ValueError(f"Variable {node.id} must be numeric")
+                    raise ValueError(f"Non-numeric variable value: {node.id}")
                 return float(val)
-            if isinstance(node, ast.UnaryOp) and type(node.op) in _UNARY_OPS:
-                return float(_UNARY_OPS[type(node.op)](_eval_node(node.operand)))
-            if isinstance(node, ast.BinOp) and type(node.op) in _BIN_OPS:
-                left = _eval_node(node.left)
-                right = _eval_node(node.right)
-                return float(_BIN_OPS[type(node.op)](left, right))
-            raise ValueError(f"Disallowed expression node: {type(node).__name__}")
+            if isinstance(node, ast.UnaryOp):
+                op_func = _UNARY_OPS.get(type(node.op))
+                if op_func is None:
+                    raise ValueError("Unsupported unary operator")
+                return float(op_func(_eval_node(node.operand)))
+            if isinstance(node, ast.BinOp):
+                op_func = _BIN_OPS.get(type(node.op))
+                if op_func is None:
+                    raise ValueError("Unsupported binary operator")
+                return float(op_func(_eval_node(node.left), _eval_node(node.right)))
+            raise ValueError(f"Disallowed expression element: {type(node).__name__}")
 
         return float(_eval_node(tree))
 
     def withdraw(self, username: str, amount: int, _artificial_delay: float = 0.0) -> bool:
         if amount <= 0:
             raise ValueError("amount must be positive")
-        conn = self._connect()
-        conn.isolation_level = None
-        max_retries = 20
-        try:
-            for attempt in range(max_retries):
+
+        max_attempts = 50
+        for attempt in range(max_attempts):
+            with contextlib.closing(self._connect()) as conn:
+                conn.isolation_level = None
                 try:
                     conn.execute("BEGIN IMMEDIATE")
+                    row = conn.execute(
+                        "SELECT 1 FROM users WHERE username = ?",
+                        (username,),
+                    ).fetchone()
+                    if row is None:
+                        conn.execute("ROLLBACK")
+                        raise KeyError(username)
+
                     if _artificial_delay > 0:
                         time.sleep(_artificial_delay)
+
                     cursor = conn.execute(
                         "UPDATE users SET balance = balance - ? WHERE username = ? AND balance >= ?",
                         (amount, username, amount),
                     )
-                    if cursor.rowcount == 1:
-                        conn.execute("COMMIT")
-                        return True
-                    exists = conn.execute(
-                        "SELECT 1 FROM users WHERE username = ?",
-                        (username,),
-                    ).fetchone()
-                    conn.execute("ROLLBACK")
-                    if exists is None:
-                        raise KeyError(username)
-                    return False
+                    conn.execute("COMMIT")
+                    return cursor.rowcount == 1
                 except sqlite3.OperationalError as exc:
                     if conn.in_transaction:
                         conn.execute("ROLLBACK")
-                    if "locked" in str(exc).lower() and attempt < max_retries - 1:
+                    msg = str(exc).lower()
+                    if ("locked" in msg or "busy" in msg) and attempt < max_attempts - 1:
                         time.sleep(0.01 * (attempt + 1))
                         continue
                     raise
@@ -154,6 +160,4 @@ class VulnerableService:
                     if conn.in_transaction:
                         conn.execute("ROLLBACK")
                     raise
-            raise sqlite3.OperationalError("database is locked")
-        finally:
-            conn.close()
+        return False

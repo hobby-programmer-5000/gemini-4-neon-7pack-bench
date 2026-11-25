@@ -120,34 +120,34 @@
     },
     "gemini-4-neon": {
       "thinking_level": "high",
-      "passed": 2,
+      "passed": 3,
       "total": 3,
-      "pass_rate": 0.6667,
-      "total_elapsed_sec": 160.076,
-      "total_output_plus_thought_tokens": 23315,
-      "total_cost_usd": "0.352839",
+      "pass_rate": 1.0,
+      "total_elapsed_sec": 191.746,
+      "total_output_plus_thought_tokens": 25552,
+      "total_cost_usd": "0.386589",
       "total_cost_usd_carbon_post_promo": null,
       "tasks": [
         {
           "task": "swe_singleflight_ratelimiter",
           "grade": {
-            "passed": false,
-            "returncode": 1,
-            "stderr_tail": "_deterministic_clock_and_threads (test_swe.TestSWE.test_token_bucket_deterministic_clock_and_threads)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<tmp>\\test_swe.py\", line 82, in test_token_bucket_deterministic_clock_and_threads\n    fixed_limiter = TokenBucketLimiter(capacity=10.0, refill_rate=0.0, clock=lambda: 0.0)\n  File \"<tmp>\\candidate.py\", line 88, in __init__\n    raise ValueError(\n        f\"refill_rate must be a finite positive number, got {refill_rate}\"\n    )\nValueError: refill_rate must be a finite positive number, got 0.0\n\n----------------------------------------------------------------------\nRan 3 tests in 0.161s\n\nFAILED (errors=1)\n"
+            "passed": true,
+            "returncode": 0,
+            "stderr_tail": "test_singleflight_dedup_and_shared_flag (test_swe.TestSWE.test_singleflight_dedup_and_shared_flag) ... ok\ntest_singleflight_exception_cleanup_and_parallel_keys (test_swe.TestSWE.test_singleflight_exception_cleanup_and_parallel_keys) ... ok\ntest_token_bucket_deterministic_clock_and_threads (test_swe.TestSWE.test_token_bucket_deterministic_clock_and_threads) ... ok\n\n----------------------------------------------------------------------\nRan 3 tests in 0.147s\n\nOK\n"
           },
           "usage": {
             "model": "gemini-4-neon",
-            "elapsed_sec": 46.662,
-            "initial_input_tokens": 425,
-            "total_input_tokens": 425,
+            "elapsed_sec": 78.333,
+            "initial_input_tokens": 490,
+            "total_input_tokens": 490,
             "total_cached_tokens": 0,
-            "total_output_tokens": 1244,
-            "total_thought_tokens": 4991,
-            "total_tokens": 6660,
-            "cost_usd": "0.094800",
+            "total_output_tokens": 1195,
+            "total_thought_tokens": 7277,
+            "total_tokens": 8962,
+            "cost_usd": "0.128550",
             "cost_usd_carbon_post_promo": null,
             "status": "completed",
-            "interaction_id": "v1_ChdHbWNHYTduaUo1SE0ycm9QbW9UeHdBZxIXR21jR2E3bmlKNUhNMnJvUG1vVHh3QWc"
+            "interaction_id": "v1_ChduNDRHYTRfTEc2LXoycm9QaHZTVDRRbxIXbjQ0R2E0X0xHNi16MnJvUGh2U1Q0UW8"
           }
         },
         {
@@ -236,35 +236,37 @@
     },
     "gemini-4-carbon": {
       "thinking_level": "medium",
-      "passed": 2,
+      "passed": 3,
       "total": 3,
-      "pass_rate": 0.6667,
-      "total_elapsed_sec": 124.798,
-      "total_output_plus_thought_tokens": 10111,
-      "total_cost_usd": "0.103168",
-      "total_cost_usd_carbon_post_promo": "0.206336",
+      "pass_rate": 1.0,
+      "total_elapsed_sec": 132.926,
+      "total_output_plus_thought_tokens": 10630,
+      "total_cost_usd": "0.108484",
+      "total_cost_usd_carbon_post_promo": "0.216968",
       "tasks": [
         {
           "task": "swe_singleflight_ratelimiter",
           "grade": {
-            "passed": false,
-            "returncode": 1,
-            "stderr_tail": "======\nERROR: test_token_bucket_deterministic_clock_and_threads (test_swe.TestSWE.test_token_bucket_deterministic_clock_and_threads)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<tmp>\\test_swe.py\", line 82, in test_token_bucket_deterministic_clock_and_threads\n    fixed_limiter = TokenBucketLimiter(capacity=10.0, refill_rate=0.0, clock=lambda: 0.0)\n  File \"<tmp>\\candidate.py\", line 83, in __init__\n    raise ValueError(\"refill_rate must be a finite number greater than 0\")\nValueError: refill_rate must be a finite number greater than 0\n\n----------------------------------------------------------------------\nRan 3 tests in 0.198s\n\nFAILED (errors=1)\n"
+            "passed": true,
+            "returncode": 0,
+            "stderr_tail": "test_singleflight_dedup_and_shared_flag (test_swe.TestSWE.test_singleflight_dedup_and_shared_flag) ... ok\ntest_singleflight_exception_cleanup_and_parallel_keys (test_swe.TestSWE.test_singleflight_exception_cleanup_and_parallel_keys) ... ok\ntest_token_bucket_deterministic_clock_and_threads (test_swe.TestSWE.test_token_bucket_deterministic_clock_and_threads) ... ok\n\n----------------------------------------------------------------------\nRan 3 tests in 0.158s\n\nOK\n"
           },
           "usage": {
             "model": "gemini-4-carbon",
-            "elapsed_sec": 55.446,
-            "initial_input_tokens": 422,
-            "total_input_tokens": 422,
+            "elapsed_sec": 63.574,
+            "initial_input_tokens": 485,
+            "total_input_tokens": 485,
             "total_cached_tokens": 0,
-            "total_output_tokens": 1199,
-            "total_thought_tokens": 3344,
-            "total_tokens": 4965,
-            "cost_usd": "0.046274",
-            "cost_usd_carbon_post_promo": "0.092548",
+            "total_output_tokens": 1289,
+            "total_thought_tokens": 3773,
+            "total_tokens": 5547,
+            "cost_usd": "0.051590",
+            "cost_usd_carbon_post_promo": "0.103180",
             "status": "completed",
-            "interaction_id": "v1_Chd1MmNHYS15aEdlU2k5dE1QeU1xVTBRRRIXdTJjR2EteWhHZVNpOXRNUHlNcVUwUUU"
-          }
+            "interaction_id": "v1_ChdIV2tHYTdHakJJYjYycm9QNzltSXlBURIXSFdrR2E3R2pCSWI2MnJvUDc5bUl5QVE"
+          },
+          "reused_from_01b": true,
+          "provenance_note": "Reused verified live gemini-4-carbon (medium) clarified-SWE run from 01b_apples_to_apples.json (identical refill_rate >= 0.0 spec and unittest grader, interaction_id=v1_ChdIV2tHYTdHakJJYjYycm9QNzltSXlBURIXSFdrR2E3R2pCSWI2MnJvUDc5bUl5QVE) because live rerun encountered a transient Google gemini-4-carbon 504 DEADLINE_EXCEEDED / ReadTimeout backend outage (2026-11-25T07:35Z-07:54Z). Marked reused_from_01b=true to avoid double-counting $0.051590 in cross-module grand totals."
         },
         {
           "task": "finance_asc606",
@@ -352,9 +354,17 @@
     }
   },
   "comparisons": {
-    "neon_vs_carbon_speedup_ratio": 0.78,
-    "neon_vs_carbon_token_ratio": 2.31
+    "neon_vs_carbon_speedup_ratio": 0.69,
+    "neon_vs_carbon_token_ratio": 2.4
   },
-  "overall_pass": false,
-  "recorded_at_utc": "2026-11-25T04:46:49.999804+00:00"
+  "v1_ambiguous_spec_history": {
+    "note": "Initial run before clarifying refill_rate >= 0.0 in TASK_SWE_PROMPT; Neon and Carbon defensively raised ValueError on refill_rate=0.0.",
+    "initial_pass_counts": {
+      "gemini-4-hydrogen": 3,
+      "gemini-4-neon": 2,
+      "gemini-4-carbon": 2
+    }
+  },
+  "overall_pass": true,
+  "recorded_at_utc": "2026-11-25T07:56:16.167807+00:00"
 }
