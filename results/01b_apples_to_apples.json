@@ -1,6 +1,6 @@
 {
   "module": "01b_apples_to_apples",
-  "title": "Clarified SWE Spec — Matched Thinking-Level Comparison (Neon vs Carbon)",
+  "title": "Clarified SWE Spec: Matched Thinking-Level Comparison (Neon vs Carbon)",
   "runs": [
     {
       "model": "gemini-4-neon",

@@ -149,33 +149,94 @@ def grade_combo(text: str) -> tuple[bool, Any]:
         return False, f"parse_err: {exc}"
 
 
-def run_benchmark() -> dict[str, Any]:
-    print(f"=== [Module 5] Four Thinking Levels Sweep (Combinatorics GT={COMBINATORICS_GT}) ===")
-    client = get_client()
+def _run_neon_call(client: Any, prompt: str, lvl: str, max_out: int, use_background: bool = False) -> tuple[Any, float]:
+    t0 = time.perf_counter()
+    kwargs: dict[str, Any] = {
+        "model": "gemini-4-neon",
+        "input": prompt,
+        "generation_config": {"thinking_level": lvl, "max_output_tokens": max_out},
+    }
+    if use_background:
+        kwargs["background"] = True
+    inter = client.interactions.create(**kwargs)
+    if use_background:
+        polls = 0
+        while getattr(inter, "status", None) in ("in_progress", "queued") and polls < 180:
+            time.sleep(5)
+            polls += 1
+            inter = client.interactions.get(id=inter.id)
+    return inter, time.perf_counter() - t0
+
+
+def run_benchmark(resume_xhigh_only: bool = False) -> dict[str, Any]:
+    import json
+    from bench_core import RESULTS_DIR
+
+    print(f"=== [Module 5] Four Thinking Levels Sweep (Combinatorics GT={COMBINATORICS_GT}, resume_xhigh_only={resume_xhigh_only}) ===")
+    client = get_client(timeout_sec=900.0)
     level_results: dict[str, Any] = {}
 
-    for lvl in THINKING_LEVELS:
+    existing_path = RESULTS_DIR / "05_thinking_levels.json"
+    if resume_xhigh_only and existing_path.exists():
+        existing = json.loads(existing_path.read_text(encoding="utf-8"))
+        for k in ("low", "medium", "high"):
+            if k in existing.get("levels", {}):
+                level_results[k] = existing["levels"][k]
+
+    levels_to_run = ["xhigh"] if resume_xhigh_only else THINKING_LEVELS
+
+    # Run fast spec checks FIRST to verify spend-cap clearance before heavy xhigh reasoning
+    t0 = time.perf_counter()
+    default_inter = client.interactions.create(
+        model="gemini-4-neon",
+        input="Compute 37 * 43 and return ONLY the integer.",
+    )
+    default_usage = extract_usage("gemini-4-neon", default_inter, time.perf_counter() - t0)
+    default_ok = "1591" in extract_all_model_text(default_inter)
+
+    minimal_rejected = False
+    minimal_error = ""
+    try:
+        client.interactions.create(
+            model="gemini-4-neon",
+            input="Say hello.",
+            generation_config={"thinking_level": "minimal"},
+        )
+    except Exception as exc:
+        minimal_rejected = True
+        minimal_error = f"{type(exc).__name__}: {str(exc)[:240]}"
+
+    print(f"-> Spec checks: default_ok={default_ok} (cost=${default_usage.cost_usd}) | minimal_rejected={minimal_rejected}")
+    if minimal_error:
+        print(f"   minimal rejection detail: {minimal_error}")
+
+    for lvl in levels_to_run:
         print(f"\n-> Sweeping thinking_level='{lvl}'...")
         try:
+            use_bg = lvl == "xhigh"
             # Task A: DP
-            t0 = time.perf_counter()
-            inter_dp = client.interactions.create(
-                model="gemini-4-neon",
-                input=TASK_DP_PROMPT,
-                generation_config={"thinking_level": lvl, "max_output_tokens": 32768},
+            inter_dp, dt_dp = _run_neon_call(
+                client,
+                TASK_DP_PROMPT,
+                lvl,
+                max_out=65536 if lvl == "xhigh" else 32768,
+                use_background=use_bg,
             )
-            u_dp = extract_usage("gemini-4-neon", inter_dp, time.perf_counter() - t0)
+            u_dp = extract_usage("gemini-4-neon", inter_dp, dt_dp)
             dp_ok = grade_dp(extract_python_code(extract_all_model_text(inter_dp)))
+            print(f"   [{lvl} Task A DP] pass={dp_ok} | thought={u_dp.total_thought_tokens} | out={u_dp.total_output_tokens} | time={u_dp.elapsed_sec:.2f}s | cost=${u_dp.cost_usd}")
 
-            # Task B: Hard Combinatorics
-            t0 = time.perf_counter()
-            inter_cb = client.interactions.create(
-                model="gemini-4-neon",
-                input=TASK_COMBO_PROMPT,
-                generation_config={"thinking_level": lvl, "max_output_tokens": 49152},
+            # Task B: Hard Combinatorics (use background + 131072 cap on xhigh so deep reasoning is never cut off)
+            inter_cb, dt_cb = _run_neon_call(
+                client,
+                TASK_COMBO_PROMPT,
+                lvl,
+                max_out=131072 if lvl == "xhigh" else 49152,
+                use_background=use_bg,
             )
-            u_cb = extract_usage("gemini-4-neon", inter_cb, time.perf_counter() - t0)
+            u_cb = extract_usage("gemini-4-neon", inter_cb, dt_cb)
             cb_ok, cb_got = grade_combo(extract_all_model_text(inter_cb))
+            print(f"   [{lvl} Task B Combo] pass={cb_ok} (got={cb_got}) | thought={u_cb.total_thought_tokens} | out={u_cb.total_output_tokens} | time={u_cb.elapsed_sec:.2f}s | cost=${u_cb.cost_usd}")
 
             total_cost = Decimal(u_dp.cost_usd) + Decimal(u_cb.cost_usd)
             total_thought = u_dp.total_thought_tokens + u_cb.total_thought_tokens
@@ -198,6 +259,7 @@ def run_benchmark() -> dict[str, Any]:
                 "total_thought_tokens": total_thought,
                 "total_output_tokens": total_out,
                 "total_cost_usd": str(total_cost.quantize(Decimal("0.000001"))),
+                "used_background_long_decode": use_bg,
                 "dp_usage": u_dp.to_dict(),
                 "combo_usage": u_cb.to_dict(),
             }
@@ -214,57 +276,37 @@ def run_benchmark() -> dict[str, Any]:
                 "total_output_tokens": 0,
                 "total_cost_usd": "0.000000",
             }
-        # Incremental checkpoint save so partial sweeps are never lost on quota caps
         save_result("05_thinking_levels", {"module": "05_thinking_levels", "levels": level_results, "in_progress": True})
 
-    # Spec check 1: Default thinking_level (omitted -> defaults to high)
-    t0 = time.perf_counter()
-    default_inter = client.interactions.create(
-        model="gemini-4-neon",
-        input="Compute 37 * 43 and return ONLY the integer.",
-    )
-    default_usage = extract_usage("gemini-4-neon", default_inter, time.perf_counter() - t0)
-    default_ok = "1591" in extract_all_model_text(default_inter)
-
-    # Spec check 2: Rejects unsupported `minimal` level
-    minimal_rejected = False
-    minimal_error = ""
-    try:
-        client.interactions.create(
-            model="gemini-4-neon",
-            input="Say hello.",
-            generation_config={"thinking_level": "minimal"},
-        )
-    except Exception as exc:
-        minimal_rejected = True
-        minimal_error = f"{type(exc).__name__}: {str(exc)[:240]}"
-
-    print(f"\n-> Spec checks: default_ok={default_ok} | minimal_rejected={minimal_rejected}")
-    if minimal_error:
-        print(f"   minimal rejection detail: {minimal_error}")
-
-    # Monotonic thought-token scaling sanity check: xhigh > low
-    thought_scaling_observed = (
-        level_results["xhigh"]["total_thought_tokens"] > level_results["low"]["total_thought_tokens"]
-    )
+    low_t = level_results.get("low", {}).get("total_thought_tokens", 0)
+    med_t = level_results.get("medium", {}).get("total_thought_tokens", 0)
+    high_t = level_results.get("high", {}).get("total_thought_tokens", 0)
+    xhigh_t = level_results.get("xhigh", {}).get("total_thought_tokens", 0)
+    thought_scaling_observed = xhigh_t > low_t > 0
 
     summary = {
         "module": "05_thinking_levels",
         "title": "Four configurable thinking levels (low, medium, high, xhigh) + minimal rejection",
         "combinatorics_ground_truth": COMBINATORICS_GT,
-        "levels": level_results,
+        "levels": {k: level_results[k] for k in THINKING_LEVELS if k in level_results},
         "spec_checks": {
             "default_omitted_ok": default_ok,
             "default_usage": default_usage.to_dict(),
             "minimal_rejected_as_documented": minimal_rejected,
             "minimal_error": minimal_error,
             "thought_tokens_scale_xhigh_gt_low": thought_scaling_observed,
+            "thought_token_scaling_ratios": {
+                "medium_vs_low": round(med_t / low_t, 2) if low_t else None,
+                "high_vs_low": round(high_t / low_t, 2) if low_t else None,
+                "xhigh_vs_low": round(xhigh_t / low_t, 2) if low_t else None,
+            },
         },
         "overall_pass": (
             default_ok
             and minimal_rejected
             and thought_scaling_observed
-            and max(v["score"] for v in level_results.values()) == 2
+            and all(level_results.get(k, {}).get("status") == "completed" for k in THINKING_LEVELS)
+            and max(v.get("score", 0) for v in level_results.values()) == 2
         ),
     }
     out = save_result("05_thinking_levels", summary)
@@ -273,4 +315,8 @@ def run_benchmark() -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    run_benchmark()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--resume-xhigh", action="store_true", help="Keep existing low/medium/high and run xhigh + spec checks only")
+    cli_args = parser.parse_args()
+    run_benchmark(resume_xhigh_only=cli_args.resume_xhigh)

@@ -1,6 +1,6 @@
 {
   "module": "05_thinking_levels",
-  "title": "Four configurable thinking levels (low, medium, high, xhigh) — live measured sweep",
+  "title": "Four configurable thinking levels (low, medium, high, xhigh) + minimal rejection",
   "combinatorics_ground_truth": 5247,
   "levels": {
     "low": {
@@ -43,26 +43,73 @@
       "total_cost_usd": "0.620565"
     },
     "xhigh": {
-      "status": "rate_limited_429",
-      "error": "RateLimitError 429: Your project is temporarily rate-limited to prevent exceeding its monthly spending cap. Please raise your project spend cap or wait before retrying.",
-      "note": "xhigh DP task A completed, then xhigh combinatorics task B triggered project monthly spend-cap 429; halted immediately to protect user API budget.",
-      "score": 0,
+      "status": "completed",
+      "dp_passed": true,
+      "combo_passed": true,
+      "combo_got": 5247,
+      "combo_expected": 5247,
+      "score": 2,
       "total_tasks": 2,
-      "total_elapsed_sec": 0.0,
-      "total_thought_tokens": 0,
-      "total_output_tokens": 0,
-      "total_cost_usd": "0.000000"
+      "total_elapsed_sec": 729.276,
+      "total_thought_tokens": 89115,
+      "total_output_tokens": 1318,
+      "total_cost_usd": "1.357650",
+      "used_background_long_decode": true,
+      "dp_usage": {
+        "model": "gemini-4-neon",
+        "elapsed_sec": 485.389,
+        "initial_input_tokens": 0,
+        "total_input_tokens": 239,
+        "total_cached_tokens": 0,
+        "total_output_tokens": 1306,
+        "total_thought_tokens": 56832,
+        "total_tokens": 58377,
+        "cost_usd": "0.872787",
+        "cost_usd_carbon_post_promo": null,
+        "status": "completed",
+        "interaction_id": "v1_ChdEb01HYV96a0VjS3cwLWtQdW9UTmlBURIXRG9NR2FfemtFY0t3MC1rUHVvVE5pQVE"
+      },
+      "combo_usage": {
+        "model": "gemini-4-neon",
+        "elapsed_sec": 243.887,
+        "initial_input_tokens": 0,
+        "total_input_tokens": 146,
+        "total_cached_tokens": 0,
+        "total_output_tokens": 12,
+        "total_thought_tokens": 32283,
+        "total_tokens": 32441,
+        "cost_usd": "0.484863",
+        "cost_usd_carbon_post_promo": null,
+        "status": "completed",
+        "interaction_id": "v1_Chc5SVFHYTVTbENKR052cjBQdjg3bnlRcxIXOUlRR2E1U2xDSkdOdnIwUHY4N255UXM"
+      }
     }
   },
   "spec_checks": {
-    "thought_tokens_scale_low_to_high": true,
+    "default_omitted_ok": true,
+    "default_usage": {
+      "model": "gemini-4-neon",
+      "elapsed_sec": 7.432,
+      "initial_input_tokens": 48,
+      "total_input_tokens": 48,
+      "total_cached_tokens": 0,
+      "total_output_tokens": 5,
+      "total_thought_tokens": 221,
+      "total_tokens": 274,
+      "cost_usd": "0.003534",
+      "cost_usd_carbon_post_promo": null,
+      "status": "completed",
+      "interaction_id": "v1_ChdDSU1HYS1hSURZYWo5dE1QcnJqNHVBbxIXQ0lNR2EtYUlEWWFqOXRNUHJyajR1QW8"
+    },
+    "minimal_rejected_as_documented": true,
+    "minimal_error": "BadRequestError: Error code: 400 - {'error': {'message': 'Thinking level THINKING_LEVEL_MINIMAL is not supported for this model. Please retry with other thinking level.', 'code': 'invalid_request'}}",
+    "thought_tokens_scale_xhigh_gt_low": true,
     "thought_token_scaling_ratios": {
       "medium_vs_low": 1.68,
-      "high_vs_low": 3.45
-    },
-    "minimal_rejection_check": "deferred_due_to_project_spend_cap_429_respect"
+      "high_vs_low": 3.45,
+      "xhigh_vs_low": 7.6
+    }
   },
-  "source_log": "logs/module_05_run.log",
   "overall_pass": true,
-  "partial_note": "low/medium/high all scored 2/2 (exact 5247) with strict monotonic thought-token scaling (11,733 -> 19,745 -> 40,442); xhigh stopped cleanly on HTTP 429 monthly spend cap."
+  "recorded_at_utc": "2026-11-25T06:53:28.463772+00:00"
 }

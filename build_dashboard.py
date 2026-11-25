@@ -86,19 +86,27 @@ def _render_m5_chart(m5: dict[str, Any]) -> Path:
     ax1.set_xticks(x)
     ax1.set_xticklabels(labels, fontweight="bold")
     max_t = max(thoughts) if any(thoughts) else 1
+    ax1.set_ylim(0, max_t * 1.18)
     for bar, v, l in zip(bars, thoughts, lvls):
         txt = "429 Cap" if m5["levels"].get(l, {}).get("status") == "rate_limited_429" else f"{v:,}"
-        ax1.text(bar.get_x() + bar.get_width() / 2, v + max_t * 0.02, txt, ha="center", fontsize=8)
+        ax1.text(bar.get_x() + bar.get_width() / 2, v + max_t * 0.025, txt, ha="center", fontsize=8, fontweight="bold")
 
     valid_idx = [i for i, l in enumerate(lvls) if m5["levels"].get(l, {}).get("status") != "rate_limited_429"]
     ax2 = ax1.twinx()
     ax2.plot([x[i] + 0.18 for i in valid_idx], [secs[i] for i in valid_idx], marker="o", linewidth=2.5, color="#34d399", label="Total Latency (s)")
     ax2.set_ylabel("Latency (s)", color="#34d399", fontweight="bold")
     max_s = max(secs) if any(secs) else 1
+    ax2.set_ylim(0, max_s * 1.18)
     for i in valid_idx:
         ax2.text(x[i] + 0.18, secs[i] + max_s * 0.03, f"{secs[i]:.1f}s", ha="center", color="#34d399", fontsize=8, fontweight="bold")
 
-    plt.title("Module 5: Gemini 4 Neon Thinking Level Scaling (low -> high measured; xhigh hit 429 spend cap)", fontweight="bold")
+    has_429 = any(m5["levels"].get(l, {}).get("status") == "rate_limited_429" for l in lvls)
+    title_str = (
+        "Module 5: Gemini 4 Neon Thinking Level Scaling (low -> high; xhigh 429 cap)"
+        if has_429
+        else "Module 5: Gemini 4 Neon Thinking Level Scaling (low -> xhigh, All 2/2 PASS)"
+    )
+    plt.title(title_str, fontweight="bold", fontsize=11)
     fig.tight_layout()
     fig.savefig(out, facecolor="#0f172a")
     plt.close(fig)
@@ -229,7 +237,7 @@ def generate_dashboard() -> Path:
         "02": "6-file 4-bug repo refactored in 5 turns (0 Phase-1 redundant reads, 5/5 unittest PASS, 39.9% implicit cache)",
         "03": "10/10 cross-domain synthesis (Legal Addendum + Finance CSV + PNG Chart + Arrhenius 62.5 kJ/mol) in 59.93s",
         "04": "5/5 CWE root-cause patches PASS + 5/5 AST audit + 0 under-service / 0 overreach boundary check",
-        "05": "low (11,733 tok) -> medium (19,745 tok) -> high (40,442 tok) all 2/2 PASS (5247); xhigh hit 429 spend cap",
+        "05": "low (11,733) -> medium (19,745) -> high (40,442) -> xhigh (89,115 tok, 7.60x); all 4 levels 2/2 PASS + minimal HTTP 400 rejected",
         "06": "Unified 1M budget + 3-hop unit test PASS; live background (131K cap) & client-side continuation PASS",
         "07": "v1beta remote Linux Antigravity Managed Agent PASS (53.1% cache); Neon->Hydrogen 2.58x faster, -40.1% cost",
     }

@@ -9,7 +9,7 @@
 
 2026년 11월 18일 정식 출시된 `gemini-4-neon`의 Google AI Studio 공식 가이드 문서([What's new in Gemini 4 Neon](https://aistudio.google.com/docs/whats-new-gemini-4-neon))에 소개된 7개 항목을 하나씩 실제 코드와 라이브 API 호출로 검증한 벤치마크 스위트입니다.
 
-Google GenAI Interactions API(`google-genai 3.3.0`), `v1beta` Antigravity Managed Agent, 로컬 `unittest` 및 AST 정적 감사로 모든 결과를 측정했습니다. 전체 라이브 실측 비용은 \$3.013744(`Decimal` 정밀 정산)이며, 추측이나 목업 수치는 제외했습니다.
+Google GenAI Interactions API(`google-genai 3.3.0`), `v1beta` Antigravity Managed Agent, 로컬 `unittest` 및 AST 정적 감사로 모든 결과를 측정했습니다. 전체 라이브 실측 비용은 \$4.374928(`Decimal` 정밀 정산)이며, 추측이나 목업 수치는 제외했습니다.
 
 ## 1. 7개 항목 실측 성적표
 
@@ -19,7 +19,7 @@ Google GenAI Interactions API(`google-genai 3.3.0`), `v1beta` Antigravity Manage
 | 02 | 복잡 SWE, 멀티파일 리팩토링, 컴팩션, 비환각 | [`bench_02_agentic_repo_refactor.py`](./bench_02_agentic_repo_refactor.py) | PASS | 6개 파일 4대 크로스파일 버그를 5턴 만에 병렬 읽기(Phase 1 중복 읽기 0회) -> 병렬 수정 -> `unittest` 5/5 첫 시도 통과, 컴팩션 기억 유지 및 미구현 상수 비환각 통과(암묵적 캐시 39.9%) | \$0.210704 |
 | 03 | 지식노동, 과학, 멀티모달 교차 종합 | [`bench_03_knowledge_science_1m.py`](./bench_03_knowledge_science_1m.py) | PASS (10/10) | 14,001 입력 토큰(법률 MSA+Addendum, 재무 CSV, PNG 차트, Arrhenius CSV)에서 10/10 항목 정확 추출(59.93s) | \$0.155133 |
 | 04 | 사이버보안 루트-코즈 패치 및 권한 경계 | [`bench_04_cybersecurity_reliability.py`](./bench_04_cybersecurity_reliability.py) | PASS (5/5 + 경계) | 5대 CWE 패치 후 공격 차단 및 정상 기능 5/5 통과, AST 정적 감사 5/5, 권한 경계 테스트(과소수행 0, 과잉행동 0) | \$0.135138 |
-| 05 | 4단계 Thinking Level (`low`/`medium`/`high`/`xhigh`) | [`bench_05_thinking_levels.py`](./bench_05_thinking_levels.py) | 부분 완료 (`low`~`high` PASS, `xhigh` 429 한도) | `low`(11,733 tok / 103.86s) -> `medium`(19,745 tok / 139.58s) -> `high`(40,442 tok / 417.73s) 전 구간 2/2 정답(`5247`). `xhigh` 2번째 호출에서 프로젝트 월간 지출 한도 `HTTP 429`로 안전 중단 | \$1.117485 |
+| 05 | 4단계 Thinking Level (`low`/`medium`/`high`/`xhigh`) | [`bench_05_thinking_levels.py`](./bench_05_thinking_levels.py) | PASS (4/4 레벨 + `minimal` 400 거부) | `low`(11,733 tok / 103.86s) -> `medium`(19,745 tok / 139.58s) -> `high`(40,442 tok / 417.73s) -> `xhigh`(89,115 tok / 729.28s, `7.60x`) 4단계 모두 2/2 정답(`5247`) 및 `minimal` HTTP 400 거부 확인 | \$2.478669 |
 | 06 | 통합 1M 컨텍스트 및 Long Decode | [`bench_06_unified_1m_long_decode.py`](./bench_06_unified_1m_long_decode.py) | PASS | 통합 1,048,576 예산 검증 및 3-hop 연속성 유닛테스트 통과, 라이브 `background=True`(`max_output_tokens=131072`) 9회 폴링 완료(38.96s), `automatic_continuation=False` 완료(18.29s), 13K 니들 2/2 통과 | \$0.158709 |
 | 07 | Antigravity Managed Agent 단독 및 Hydrogen 페어링 | [`bench_07_managed_agents_multimodel.py`](./bench_07_managed_agents_multimodel.py) | PASS | `v1beta` 원격 리눅스 샌드박스(`antigravity-preview-09-2026` + `gemini-4-neon`) 실행 및 SHA-256 일치(56.60s, 암묵적 캐시 53.1%), Neon -> Hydrogen 페어링 2턴 2.58배 빠름 및 총비용 40.1% 절감 | \$0.208159 |
 
@@ -74,9 +74,10 @@ Google GenAI Interactions API(`google-genai 3.3.0`), `v1beta` Antigravity Manage
 - `low`: 2/2 PASS, 사고 토큰 `11,733`, `103.86s`, \$0.193485
 - `medium`: 2/2 PASS, 사고 토큰 `19,745` (`1.68x`), `139.58s`, \$0.303435
 - `high`: 2/2 PASS, 사고 토큰 `40,442` (`3.45x`), `417.73s`, \$0.620565
-- `xhigh`: 1번 DP 과제 완료 후 2번 조합론 호출에서 Google API 월간 지출 한도 `HTTP 429`가 반환되어 추가 과금을 막기 위해 중단했습니다.
+- `xhigh` (`background=True`): 2/2 PASS, 사고 토큰 `89,115` (`7.60x`; DP `56,832` + 조합론 `32,283`), `729.28s`, \$1.357650
+- 스펙 검증: `thinking_level` 생략 기본 호출 PASS(\$0.003534), `thinking_level="minimal"` 전달 시 `BadRequestError (400): Thinking level THINKING_LEVEL_MINIMAL is not supported for this model` 거부 확인.
 
-`low`에서도 두 과제를 100% 맞혔고 `high`는 비용 3.2배와 지연 4.0배를 썼습니다. 워크로드 평가셋에서 `low` -> `medium` -> `high` 순으로 확인해 기준을 넘는 가장 낮은 레벨을 선택하면 비용과 지연을 줄일 수 있습니다.
+단계가 올라갈수록 사고 토큰이 약 1.7~2.2배씩 계단식으로 늘어났습니다(`1.00x` -> `1.68x` -> `3.45x` -> `7.60x`). 이 2개 과제에서는 `low`에서도 100% 정답을 냈고 `xhigh`는 `low`보다 비용과 지연이 약 7배 늘었으므로, 워크로드 평가셋에서 `low` -> `medium` -> `high` -> `xhigh` 순으로 확인해 기준을 넘는 가장 낮은 레벨을 고르면 비용과 지연을 줄일 수 있습니다. `xhigh` DP 단일 호출이 `58,138`토큰(사고+출력)을 써서, `xhigh` 실행 시에는 `max_output_tokens`를 `65,536` 이상으로 두고 `background=True`를 켜야 응답이 잘리지 않습니다.
 
 ### Module 06 & 07: 통합 1M Long Decode, 암묵적 캐싱, Antigravity Managed Agent
 
