@@ -321,6 +321,18 @@ def generate_dashboard() -> Path:
         </tbody>
       </table>
     </div>
+    <section class="card" style="border-color:#92400e;background:#1c1917;">
+      <div class="card-head">
+        <h2>Measurement Limitations &amp; Caveats</h2>
+        <span class="badge" style="background:#78350f;color:#fde68a;border:1px solid #f59e0b;">TRANSPARENCY NOTE</span>
+      </div>
+      <ol style="margin:12px 0 0;padding-left:20px;font-size:13px;color:#e5e7eb;">
+        <li style="margin-bottom:6px;"><strong>Module 01 preserved initial failure (7 / 8 KPI):</strong> <code>01_frontier_speed_cost.json</code> remains <code>overall_pass: false</code> because the initial SWE prompt omitted whether <code>refill_rate=0.0</code> was allowed, causing both Neon and Carbon to reject <code>0.0</code> defensively. Module 01B clarified <code>refill_rate &gt;= 0.0</code> and passed 4/4 across matched levels; the original run is preserved rather than deleted.</li>
+        <li style="margin-bottom:6px;"><strong>Module 6B/6C did not cross 64K output in live generation:</strong> Live calls verified the <code>background=True</code> and <code>automatic_continuation=False</code> API paths with <code>max_output_tokens=131072</code>, but responses finished inside 1 hop (3,058 and 1,874 tokens). Multi-hop (&gt;64K) stitching and compaction accounting were verified by the deterministic 3-hop unit test in 6A.</li>
+        <li style="margin-bottom:6px;"><strong>Module 6D stateless implicit cache was 0%:</strong> Two consecutive stateless 13K-token prompts passed 2/2 needle checks with <code>total_cached_tokens=0</code>. Live 95%-discounted implicit cache hits were observed in stateful multi-turn sessions instead (Module 2: 39.9%, Module 7A Managed Agent: 53.1%).</li>
+        <li><strong>Module 4 SQLite ResourceWarning:</strong> <code>results/patched_service_04.py</code> passed 5/5 security/functional tests and 5/5 AST checks, but retains the original fixture's <code>with self._connect() as conn:</code> pattern (which commits without calling <code>conn.close()</code>), emitting <code>ResourceWarning: unclosed database</code> on Windows test teardown.</li>
+      </ol>
+    </section>
     {''.join(cards_html)}
     <footer>
       <div>Built by <a href="https://github.com/hobby-programmer-5000">@hobby-programmer-5000</a> &amp; <a href="https://github.com/antigravity-bot">@antigravity-bot</a> (Google Antigravity / Gemini 4 Neon XHigh)</div>

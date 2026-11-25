@@ -84,7 +84,16 @@ Google GenAI Interactions API(`google-genai 3.3.0`), `v1beta` Antigravity Manage
 - Long Decode([`results/06_unified_1m_long_decode.json`](./results/06_unified_1m_long_decode.json)): 통합 1,048,576 예산 검증 및 3-hop 연속성 유닛테스트를 통과했고, 라이브 `background=True`(`max_output_tokens=131072`)와 `automatic_continuation=False` 모두 완료 상태를 확인했습니다. 무상태 단발 2회 호출에서는 암묵적 캐시 히트가 0이었지만, 상태 유지형 멀티턴 세션(Module 2: 39.9%, Module 7A: 53.1%)에서는 95% 할인 캐시가 실제로 동작했습니다.
 - Managed Agent 및 모델 페어링([`results/07_managed_agents_multimodel.json`](./results/07_managed_agents_multimodel.json)): `v1beta` 원격 리눅스 샌드박스(`antigravity-preview-09-2026`, `agent_config={"type": "antigravity", "model": "gemini-4-neon"}`)가 `calc_primes.py`를 작성·실행해 소수 개수 `1229`, 합 `5736396`, SHA-256을 정확히 검증했습니다. 동일 `previous_interaction_id` 스레드에서 Turn 1 설계를 Neon에 맡기고 Turn 2 구현을 `gemini-4-hydrogen`으로 넘기자 `unittest` 2/2 통과를 유지하면서 2턴 속도가 2.58배 빨라졌고(11.72s vs 30.18s) 총비용이 40.1% 줄었습니다(\$0.072567 vs \$0.121182).
 
-## 3. 실행 방법
+## 3. 측정 한계 및 주의사항 (Limitations & Caveats)
+
+실측 결과를 과장하지 않도록 아래 4가지 한계와 특이사항을 그대로 남깁니다.
+
+1. Module 01 초기 실패 원본 보존: [`results/01_frontier_speed_cost.json`](./results/01_frontier_speed_cost.json)은 초기 SWE 프롬프트에 `refill_rate=0.0` 허용 여부를 적지 않아 Neon과 Carbon이 방어 검증(`ValueError`)으로 실패해 `overall_pass: false`로 남아 있습니다. 스펙을 명시한 [`results/01b_apples_to_apples.json`](./results/01b_apples_to_apples.json)에서는 4/4 구성이 모두 통과했지만 초기 기록을 지우지 않았으므로, 대시보드 상단 집계는 `7 / 8`로 표시됩니다.
+2. Module 6B/6C 실제 64K 초과 멀티홉 미실행: [`results/06_unified_1m_long_decode.json`](./results/06_unified_1m_long_decode.json)에서 `max_output_tokens=131072`로 `background=True`와 `automatic_continuation=False` API 호출 및 폴링 완료는 라이브로 검증했습니다. 다만 실제 생성 토큰이 각각 `3,058`토큰과 `1,874`토큰(사고+출력)으로 64K 미만이어서 1-hop 안에서 종료되었고, 64K를 넘겨 여러 hop을 이어 붙이는 연속성 및 컴팩션 회계 로직은 6A의 로컬 3-hop 유닛테스트(`multihop_continuation_unit_test`)로 검증했습니다.
+3. Module 6D 무상태 호출의 암묵적 캐시 0%: 13K 입력 단발 무상태(stateless) 2연속 호출은 니들 정답 2/2를 맞혔지만 `total_cached_tokens=0`이었습니다. 실제 95% 할인 암묵적 캐시 히트는 상태 유지형 멀티턴 세션인 Module 2(39.9%)와 Module 7A Managed Agent(53.1%)에서만 관측되었습니다.
+4. Module 4 `sqlite3` 연결 미종료 경고: [`results/patched_service_04.py`](./results/patched_service_04.py)는 5/5 보안·정상기능 테스트와 5/5 AST 감사를 통과했지만, 원본 [`fixtures/vuln_app/service.py`](./fixtures/vuln_app/service.py)에 있던 `with self._connect() as conn:` 패턴(`sqlite3` 컨텍스트 매니저는 커밋·롤백만 처리하고 연결을 닫지 않음)이 남아 있어 Windows 테스트 종료 시 `ResourceWarning: unclosed database` 경고가 출력됩니다.
+
+## 4. 실행 방법
 
 유료 티어 `GEMINI_API_KEY` 환경 변수와 Python 3.11+ 환경이 필요합니다.
 
@@ -106,7 +115,7 @@ python bench_01b_apples_to_apples.py
 python build_dashboard.py
 ```
 
-## 4. 기여자 및 역할 분담 (Contributors)
+## 5. 기여자 및 역할 분담 (Contributors)
 
 상세 내역은 [`CONTRIBUTORS.md`](./CONTRIBUTORS.md)에 정리했습니다.
 
@@ -115,6 +124,6 @@ python build_dashboard.py
 | <img src="https://github.com/hobby-programmer-5000.png?size=48" width="24" height="24" align="absmiddle" alt="hobby-programmer-5000" /> [`@hobby-programmer-5000`](https://github.com/hobby-programmer-5000) | Human Project Owner | [What's new in Gemini 4 Neon](https://aistudio.google.com/docs/whats-new-gemini-4-neon) 7개 항목 실측 검증 기획, 유료 API 환경 및 예산 경계 관리, `anti-slop-editor` 및 `reference-fact-check` 품질 감사 지시, MIT 공개 배포 확정 |
 | <img src="https://github.com/antigravity-bot.png?size=48" width="24" height="24" align="absmiddle" alt="antigravity-bot" /> [`@antigravity-bot`](https://github.com/antigravity-bot) | AI Engineering Partner (`Google Antigravity`, `Gemini 4 Neon XHigh`) | 공식 문서 MCP 스펙 검증, 7개 모듈 + 01B 벤치마크·픽스처·대시보드 구현, 라이브 API 실행 및 정산, `slop_engine.py`·`ref_factcheck` 사후 검증 및 Zero-PII 패키징 |
 
-## 5. License
+## 6. License
 
 This project is released under the [MIT License](./LICENSE).
